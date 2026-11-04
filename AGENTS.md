@@ -1,6 +1,6 @@
 # Working agreement
 
-Read GAME.md, SPEC.md and KNOWLEDGE.md before work. Keep durable knowledge in these files; update only what meaningfully changed. Do not duplicate facts across them.
+Read docs/GAME.md, docs/SPEC.md and docs/KNOWLEDGE.md before work. Keep durable knowledge in these files; update only what meaningfully changed. Do not duplicate facts across them.
 
 - Oleksandr designs, approves scope, playtests, decides what ships and merges. Codex writes specs, implements, validates and fixes routine technical problems in one main chat.
 - Loop: describe intended feel → short spec (scope, non-goals, technical freedom) → scope approval → build and test → playable checkpoint → batched playtest feedback → update observations and decisions separately.
