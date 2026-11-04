@@ -1,0 +1,13 @@
+{
+  "triangles": 1360,
+  "mesh_objects": 34,
+  "bones": 14,
+  "height_m": 0.942,
+  "head_width_m": 0.335,
+  "poses": [
+    "Stand",
+    "Sit",
+    "Steer",
+    "LookSide"
+  ]
+}

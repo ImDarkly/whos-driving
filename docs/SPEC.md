@@ -1,4 +1,16 @@
-# Current spec: Retro car visual replacement
+# Current spec: Crash-test dummy asset
+
+## Approved scope — 2026-11-04
+
+Oleksandr supplied the v1.1 crash-test dummy visual reference and requested implementation after confirming the actual cabin is on synced main. Build an original low-poly character following the pictured silhouette: oversized faceted head, simple eyes, yellow shells, charcoal joints and fixed crash-test badges. Deliver editable Blender source, a rigged GLB, yellow/red/blue/green body materials and standing, seated, steering-example and head-turn previews. Fit-study copies use the actual merged car and all four existing seat anchors.
+
+Use rigid bone weights and separate moving pieces; the approximate mesh count is guidance, not a fixed requirement. Target 800–1,500 triangles. Preserve eye/badge colors when repainting the shell; a fourth fixed safety-yellow material is allowed to keep badges yellow on other body colors. Pose clips are static inspection poses, not adopted gameplay animations. Exact character scale and proportions may be adjusted to the cabin while retaining the reference silhouette.
+
+No playable integration, changes to cameras, controls, physics, networking, car geometry or seat anchors; no walking, gaze replication or gameplay steering animation. Visual approval and human cabin visibility remain Oleksandr's decision. Validate actual GLB import, skinning and pose retention in Godot, inspect Blender renders and record limitations in KNOWLEDGE.md.
+
+---
+
+# Previous spec: Retro car visual replacement
 
 ## Approved scope — 2026-11-04
 
