@@ -21,6 +21,8 @@ Approved head-direction follow-up: `tests/dummy_gaze.gd` attaches only to the ne
 
 Executed `./tests/run_dummy_gaze.ps1`: two headless peers exit 0, clean stderr. `./tests/run_dummy_gaze.ps1 -Native`: two native AMD Radeon/OpenGL peers exit 0, clean stderr; inspected `build/gaze-peer-{1,2}-turned.png` and saw each remote face turned toward the other seat. Checks exercise real two-process gaze transport, differing host/client yaw/pitch, actual bone rotation, unchanged non-head bones/local camera/car, shared reset, angle bounds, nonfinite/stale-sequence/old-attempt rejection and stale-head return. Initial probe failures were GDScript dynamic-type inference (fixed explicit types) and sampling car position during normal floor settling (waited 0.8 s before the baseline; no physics change). `tests/check_dummy.gd` rerun exits 0; whitespace check passed. No broad gameplay suites or EOS test rerun, because only the demo helper/probe changed. Human comfort, Internet behavior and adoption remain unverified.
 
+Publication preparation at Oleksandr's commit/PR request: fetched origin; the branch is based on the merged retro-car main. `build/audit_secrets.ps1 -StagedOnly` scanned 141 tracked files / 38,060,370 bytes including 18 binaries: zero findings against the local EOS values and credential patterns. This is a bounded scan, not a guarantee for arbitrary encodings. Local EOS config, build logs, scratch fit studies and video remain ignored and absent from tracked files. `tests/check_dummy.gd` rerun exits 0 and `git diff origin/main...HEAD --check` passed. Earlier native/two-peer test results above were not rerun during publication preparation.
+
 ---
 
 # Retro car visual checkpoint — 2026-11-04
