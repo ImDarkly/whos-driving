@@ -5,7 +5,7 @@ extends SceneTree
 var game: Node3D
 var sequence := 0
 var failures := 0
-var crossings: Array[int] = []
+var entered := false
 var route_valid := true
 var previous_position := Vector3.ZERO
 var turned_right := false
@@ -26,16 +26,16 @@ func _run() -> void:
 	for count in counts:
 		game.set_local_count(count)
 		await _send(0)
-		crossings.clear()
+		entered = false
 		route_valid = true
 		turned_right = false
 		turned_left = false
 		previous_position = game.car.position
 		await _capture("spawn")
 		var aligned := true
-		# Cross opening one, turn right across the middle chamber, then left
-		# through opening two into the unchanged bay. No car-state writes.
-		var route := [Vector3(-0.5, 0, -0.5), Vector3(5, 0, -0.5), game.TUNING.bay_position]
+		# Enter the lot, follow the aisle, then align into the target.
+		# No car-state writes.
+		var route := [Vector3(0, 0, game.lot.aisle_z), Vector3(5, 0, game.lot.aisle_z), game.TUNING.bay_position]
 		for target in route:
 			for leg in 4:
 				var offset: Vector3 = target - game.car.position
@@ -62,9 +62,9 @@ func _run() -> void:
 		for tick in 240:
 			await _send(0)
 		await _capture("parked")
-		var ok: bool = aligned and arrived and game.parking.success and route_valid and crossings == [0, 1] and turned_right and turned_left
+		var ok: bool = aligned and arrived and game.parking.success and route_valid and entered and turned_right and turned_left
 		if not ok:
-			print("DETAIL aligned=", aligned, " arrived=", arrived, " parked=", game.parking.success, " valid=", route_valid, " crossings=", crossings, " turns=", turned_right, "/", turned_left)
+			print("DETAIL aligned=", aligned, " arrived=", arrived, " parked=", game.parking.success, " valid=", route_valid, " entered=", entered, " turns=", turned_right, "/", turned_left)
 		print("COMMAND-ONLY PARKING ", count, "P ", "PASS" if ok else "FAIL", " position=", game.car.position, " yaw=", game.car.rotation.y)
 		if not ok:
 			failures += 1
@@ -97,13 +97,13 @@ func _send(mask: int) -> void:
 
 	# Observe the physical trajectory, including every driven physics step.
 	var at: Vector3 = game.car.position
-	for index in 2:
-		var opening: Vector2 = game.lot.first_opening if index == 0 else game.lot.second_opening
-		if previous_position.z >= opening.y and at.z < opening.y:
-			if crossings.has(index) or absf(at.x - opening.x) > game.lot.opening_width / 2:
-				route_valid = false
-			crossings.append(index)
-	if at.x < game.lot.approach_left or at.x > game.lot.approach_right or at.z > game.lot.approach_back or at.z < game.lot.approach_end:
+	if previous_position.z >= game.lot.approach_back and at.z < game.lot.approach_back:
+		entered = true
+		if absf(at.x) > game.lot.entrance_width / 2:
+			route_valid = false
+	var on_driveway: bool = absf(at.x) < game.lot.entrance_width / 2 and at.z >= game.lot.approach_back and at.z < game.lot.approach_back + 5.5
+	var in_lot: bool = at.x > game.lot.approach_left and at.x < game.lot.approach_right and at.z > game.lot.approach_end and at.z < game.lot.approach_back
+	if not on_driveway and not in_lot:
 		route_valid = false
 	turned_right = turned_right or game.car.yaw_speed < -0.2
 	turned_left = turned_left or (turned_right and game.car.yaw_speed > 0.2)

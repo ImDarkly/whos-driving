@@ -1,4 +1,20 @@
-# Approved revision: Parked-car lot — 2026-11-04
+# Approved revision: Small readable parking lot — 2026-11-04
+
+Status: Oleksandr approved this revision in chat. This replaces the large-lot presentation and supersedes the requirement for two offset obstacle openings. Observation is recorded separately in KNOWLEDGE.md. His acceptance emphasis: the aisle must allow approach/turning without making parking effortless; the gap between neighbours should supply the challenge, not route finding.
+
+Intended feel: enter an ordinary small parking lot, understand the aisle and target, then coordinate the approach and turn into a space between parked neighbours.
+
+Scope: shrink the paved area and replace the long blocking/decorative rows with two short parking rows, roughly 12–16 marked spaces with 8–10 parked cars. Give the lot one obvious entrance near the current spawn, leading into one continuous driving aisle; use ordinary low boundary geometry and markings to make the drivable area readable. Keep several ordinary spaces empty and distinguish the existing target with its green marking. Arrange the approach so players enter along the aisle and turn/alignment into the target supplies the challenge, with room to correct or reset. Avoid a car-wall maze or requiring a tour of the lot. Retain current spawn and target transforms where feasible; report a concrete blocker before moving them.
+
+Reuse the local car model with a small varied body-colour palette, preserving glass, wheels, lights and texture detail. Every parked car stays static with a matching collision footprint; visible gaps have no hidden walls. Exact spacing, occupancy pattern and colours are technical freedom within this small layout. Inspect native cabin and exterior views for entrance/aisle/target readability.
+
+Non-goals: new downloaded art, larger map, extra targets/levels, mandatory reversing, traffic, pushable cars, controls/handling/camera changes, parking-rule changes, damage/penalties, avatars or networking redesign. Preserve harmless contact and immediate shared reset.
+
+Validation: drive from the real spawn through the entrance/aisle into real parking success using only owned commands; update route-specific assertions to the approved aisle layout without weakening ownership, collisions or parking rules. Verify parked-car/boundary contact, recovery/reset, appropriate gameplay/network regression, and native rendering. Human duo playtest judges whether players understand where to go and whether the final approach produces useful coordination; scripted success does not validate difficulty or fun.
+
+---
+
+# Previous approved revision: Parked-car lot — 2026-11-04
 
 Status: Oleksandr approved this scope in chat. Build and validate on the current experiment branch; adoption remains a playtest decision.
 

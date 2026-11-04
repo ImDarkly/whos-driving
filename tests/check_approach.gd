@@ -21,13 +21,13 @@ func _run() -> void:
 	game.manual_inputs = true
 	await process_frame
 	await _drive(0, 15)
-	check(game.lot.parked_cars.size() > 70, "surrounding marked rows populate the lot")
+	check(game.lot.parked_cars.size() == 9, "small lot has nine parked cars and empty spaces")
 	var separate := true
 	var within_lot := true
 	for index in game.lot.parked_cars.size():
 		var car: StaticBody3D = game.lot.parked_cars[index]
 		var bounds: AABB = car.global_transform * AABB(-game.TUNING.body_size / 2, game.TUNING.body_size)
-		within_lot = within_lot and bounds.position.x >= -24.81 and bounds.end.x <= 24.81 and bounds.position.z >= -24.81 and bounds.end.z <= 24.81
+		within_lot = within_lot and bounds.position.x >= game.lot.approach_left + 0.15 and bounds.end.x <= game.lot.approach_right - 0.15 and bounds.position.z >= game.lot.approach_end + 0.15 and bounds.end.z <= game.lot.approach_back - 0.15
 		for other_index in range(index + 1, game.lot.parked_cars.size()):
 			var other: StaticBody3D = game.lot.parked_cars[other_index]
 			var other_bounds: AABB = other.global_transform * AABB(-game.TUNING.body_size / 2, game.TUNING.body_size)
@@ -35,31 +35,38 @@ func _run() -> void:
 	check(separate, "parked cars have separate non-overlapping footprints")
 	check(within_lot, "parked cars fit inside the existing perimeter")
 	print("PARKED CARS: ", game.lot.parked_cars.size())
-	var query := PhysicsRayQueryParameters3D.create(Vector3(5.45, 0.55, 5), Vector3(5.45, 0.55, 1))
-	check(game.car.get_world_3d().direct_space_state.intersect_ray(query).is_empty(), "visible bumper gap has no invisible wall")
-	for opening in [game.lot.first_opening, game.lot.second_opening]:
-		var spans: Array[Vector2] = []
-		for car in game.lot.parked_cars:
-			if is_equal_approx(car.position.z, opening.y):
-				spans.append(Vector2(car.position.x - game.TUNING.body_size.z / 2, car.position.x + game.TUNING.body_size.z / 2))
-		spans.sort_custom(func(a: Vector2, b: Vector2): return a.x < b.x)
-		var previous := -24.8
-		var wide_gaps := 0
-		var correct_opening := true
-		for span in spans:
-			if span.x - previous >= game.TUNING.body_size.x:
-				wide_gaps += 1
-				correct_opening = correct_opening and absf((span.x + previous) / 2 - opening.x) < 0.01 and absf(span.x - previous - game.lot.opening_width) < 0.01
-			previous = span.y
-		check(wide_gaps == 1 and correct_opening and 24.8 - previous < game.TUNING.body_size.x, "parked row leaves only its intended vehicle-width opening")
-	# Both blocking rows, a real bumper gap, and all three target neighbours.
+	var query := PhysicsRayQueryParameters3D.create(Vector3(-1.24, 0.55, -4), Vector3(-1.24, 0.55, -9))
+	check(game.car.get_world_3d().direct_space_state.intersect_ray(query).is_empty(), "empty ordinary space has no invisible wall")
+	query = PhysicsRayQueryParameters3D.create(Vector3(0, 0.15, 7), Vector3(0, 0.15, 3))
+	query.exclude = [game.car.get_rid()]
+	check(game.car.get_world_3d().direct_space_state.intersect_ray(query).is_empty(), "entrance is open from the unchanged spawn")
+	var source: Image = load("res://assets/retro_car/retro_car_Blue Car Texture.png").get_image()
+	if source.is_compressed():
+		source.decompress()
+	source.convert(Image.FORMAT_RGBA8)
+	var detail_preserved := true
+	var body_changed := false
+	for texture in game.lot.paint_textures:
+		var painted: Image = texture.get_image()
+		for y in source.get_height():
+			for x in source.get_width():
+				var pixel := source.get_pixel(x, y)
+				var is_body := pixel.b > pixel.r * 1.25 and pixel.b > pixel.g * 1.05 and pixel.b > 0.08
+				if not is_body:
+					detail_preserved = detail_preserved and pixel == painted.get_pixel(x, y)
+				else:
+					body_changed = body_changed or pixel != painted.get_pixel(x, y)
+	check(detail_preserved and body_changed and game.lot.paint_textures.size() == 6, "six body palettes preserve non-blue atlas details")
+	if not detail_preserved or not body_changed:
+		print("PALETTE DETAIL preserved=", detail_preserved, " changed=", body_changed, " count=", game.lot.paint_textures.size())
+	# Target neighbours, back curb, side boundaries, and the near row.
 	var contacts := [
-		[Vector3(3.55, 0.56, 7), 0.0, Vector3(0, 0, -1), 1.4],
-		[Vector3(0.95, 0.56, 0), 0.0, Vector3(0, 0, -1), 1.4],
-		[Vector3(5.45, 0.56, 7), 0.0, Vector3(0, 0, -1), 1.4],
 		[Vector3(5, 0.56, -7), -PI / 2, Vector3(1, 0, 0), 0.5],
 		[Vector3(5, 0.56, -7), PI / 2, Vector3(-1, 0, 0), 0.5],
 		[Vector3(5, 0.56, -7), 0.0, Vector3(0, 0, -1), 1.6],
+		[Vector3(-2.7, 0.56, -2.9), PI / 2, Vector3(-1, 0, 0), 1.6],
+		[Vector3(13, 0.56, -2.9), -PI / 2, Vector3(1, 0, 0), 1.4],
+		[Vector3(5, 0.56, -2.9), PI, Vector3(0, 0, 1), 0.6],
 	]
 	for index in contacts.size():
 		var fixture: Array = contacts[index]
