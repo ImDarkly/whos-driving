@@ -1,4 +1,43 @@
-# Current spec: First-person shared-car experiment
+# Current spec: Retro car visual replacement
+
+## Approved scope — 2026-11-04
+
+Oleksandr selected Bricchi Games' free Retro Car With Interior and requested this spec followed by implementation in a new chat, on a new branch from synced main. This authorizes the bounded visual replacement below; it does not adopt the underlying first-person experiment or approve handling changes.
+
+### Intended feel
+
+Make the shared car feel like a recognizable, enclosed old car with a readable dashboard, seats and windows, while keeping friends and approaching parking mistakes visible from all four seats. The chosen asset establishes a retro, low-poly textured car style. Whether its enclosed cabin improves the experience remains a playtest question.
+
+### Scope
+
+- Obtain the free asset from [Bricchi Games](https://bricchi-games.itch.io/retro-car-with-interior), without payment or account sign-in. Inspect the actual archive and license before incorporating files. The listing permits commercial use with attribution, describes a detailed interior, four doors, separate wheels and steering wheel, and provides FBX/Blend files. These are listing claims, not verified import results.
+- Replace the primitive car body, cabin and wheel meshes with this one vehicle. Keep the existing authoritative physics body, collision footprint, wheel force positions, tuning and parking rules. Fit the visual model to that contract using local transforms or small mesh adjustments; do not resize gameplay collision, move barriers or retune forces to fit the asset. Check visible wheel alignment and body bounds against the existing footprint.
+- Repair material/texture references, normals, glass transparency and import settings as needed for Godot 4.6.2 Compatibility. Use supplied textures and emissive headlights; no new postprocessing, PSX shader, camera wobble or lighting overhaul. Select one supplied body color; no vehicle/color selection UI. Comment reports about broken diffuse/emissive references are a lead to inspect, not a confirmed defect in our copy.
+- Place four editable camera/passenger seat anchors inside the actual cabin, retaining front-left/front-right/rear-left/rear-right assignment and the current local free-look behavior. Adjust anchor positions to fit the model; retain FOV, sensitivity and look limits. Preserve labelled colored heads, hide the local head, leave unused seats empty, and verify friends are not embedded in seats or the roof.
+- Keep the interior, doors and roof visible in normal play. Routine material or small geometry fixes may remove accidental occlusion/clipping; do not silently remove the roof, introduce a cutaway camera or materially redesign visibility. If the model cannot support four usable seated views within this scope, report the concrete blocker and recommend the smallest decision needed.
+- Retain existing wheel command feedback and HUD readability. Wheels remain fixed in steering orientation; any retained wheel spin follows existing behavior. The decorative steering wheel, doors, hood and trunk remain static. Their separate pivots do not authorize new controls or animations.
+- Preserve authorship and the exact supplied license. Add an asset provenance/attribution file with source URL, author, license/version as actually established, and modifications. Include an accessible in-game credit to Bricchi Games in the existing room/help UI without covering the windshield. Do not infer a precise Creative Commons variant solely from the creator's informal "CC 4.0" comment; resolve it from the archive or linked license before redistribution. Never commit private configuration or downloaded archives/cache.
+
+### Technical freedom and non-goals
+
+Use a small reusable visual scene and the existing gameplay structure. Prefer an engine-ready FBX or a locally converted glTF/GLB; keep only needed distributable assets and attribution. Existing installed tooling may be used, but no software installation, global settings changes, sign-in or paid assets. Ask only if missing software/access or unresolved license terms actually block this scope.
+
+This revision supersedes the earlier primitive-only/no-external-art restriction for this specific car. No environment overhaul, characters beyond current heads, walking, opening doors, mirrors rendering, dashboard simulation, audio, new controls, physics/networking redesign, difficulty changes or additional vehicles. Existing gameplay and first-person contracts below remain in force otherwise.
+
+### Acceptance and playable checkpoint
+
+1. Import and launch the actual playable with no missing dependencies or textures. Inspect native rendered captures from every seat facing forward, toward a friend and behind. Check dashboard/door/roof surfaces, window visibility, local-head hiding, occupied/empty seats, clipping, and room/F3/success UI. Headless checks alone cannot establish visual quality.
+2. Execute the existing gameplay, cabin, command-only parking and multi-process localhost networking checks appropriate to the change. Keep meaningful behavioral assertions; adapt geometry-specific expectations only where this visual replacement supersedes them. Verify unchanged collision/handling and parking feasibility, seat identity, remapping and repeated reset. Distinguish scripted feasibility from human difficulty and localhost results from EOS/Internet evidence.
+3. Confirm asset import and attribution work without external absolute file paths. Verify the in-game credit and preserve the actual license. Record exact commands/results, modifications, import limitations and outstanding manual checks in KNOWLEDGE.md; do not report prior checks as newly executed.
+4. Leave a playable checkpoint with the shortest playtest: inspect all seats, look at friends and through each window, coordinate an approach/contact, reset and park. Oleksandr judges visibility, appearance and whether the change ships. Do not claim fun or adequate human visibility from scripts.
+
+### Implementation handoff
+
+Reuse this checkout in the requested new local chat; no worktree. Read AGENTS.md, GAME.md, SPEC.md and KNOWLEDGE.md first. Fetch origin, safely fast-forward local main to origin/main, then create a fresh `codex/retro-car-visuals` branch from that synced main. Carry only this documentation revision into it, not the previous feature branch's implementation commits. Preserve unrelated local work; no reset-hard, forced branch switch, push or merge. If synced main lacks the first-person shared-car foundation, do not silently build on the old feature branch or merge it: report that dependency and request Oleksandr's decision. A verified local commit is allowed. No global configuration, installation, account sign-in or orchestration changes.
+
+---
+
+# Retained contract: First-person shared-car experiment
 
 ## Approved revision — 2026-11-04
 
