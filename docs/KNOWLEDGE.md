@@ -1,3 +1,14 @@
+# PR #6 review fixes — 2026-11-04
+
+Oleksandr requested implementing the two accepted CodeRabbit suggestions after assessment. `check_parking_drive.gd` now creates/checks its capture directory and records PNG-save errors in the existing failure count with path/error diagnostics. `check_approach.gd` requires each of six palettes to change body texels, preserves its non-body comparison, and requires six distinct colours at the same body texel. No gameplay or asset-distribution changes. Rotated layouts and reproducible dependency provisioning remain deferred; the separate pending proposal in SPEC.md is preserved without adoption.
+
+Executed with installed Godot 4.6.2 console executable:
+
+- `--headless --path . --script tests/check_approach.gd --fixed-fps 60`: 30 checks, zero failures, exit 0.
+- Ignored negative-control copies of the actual approach check: replacing one palette with the source produces five changed palettes and exit 1; replacing all palettes with the first produces one distinct colour and exit 1. Each has exactly one expected failing check, so both missing and duplicate recolours are detected.
+- Native `--path . --script build/check_capture_io.gd -- --capture`: success saves both views; an intentionally empty directory occupying one PNG filename produces a real save error, increments the inherited failure count once, and the other view still saves. Probe exits 0 after verifying expected rejection and removing only its empty blocker directory. Its deliberate error log is expected negative-control evidence.
+- Native `--path . --script tests/check_parking_drive.gd --fixed-fps 60 -- --capture`: actual duo route/captures PASS, exit 0. This uses the repaired production test helper, not a copied capture implementation. No new broad gameplay/EOS/network run for these test-only edits; existing evidence below remains historical.
+
 # Moving-turn showcase revision — 2026-11-04
 
 Oleksandr requested rotations that look more like a human playing. Re-recorded ignored `build/natural-lot-showcase.mp4`: silent H.264/yuv420p, 1280 x 720, 30 fps, 36.633 seconds, 9,707,942 bytes. Continuous approach/parking arcs, brief wheel-input corrections, coasting and eased local look-ahead replace the previous recording's stop/pivot sequence and sideways camera snap. Captions still identify scripted offline footage; no human input or multiplayer evidence is claimed. Production scripts, controls, handling, camera and lot geometry are unchanged.

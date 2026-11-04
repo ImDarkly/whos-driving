@@ -45,9 +45,12 @@ func _run() -> void:
 		source.decompress()
 	source.convert(Image.FORMAT_RGBA8)
 	var detail_preserved := true
-	var body_changed := false
+	var changed_palettes := 0
+	var body_colours := {}
 	for texture in game.lot.paint_textures:
 		var painted: Image = texture.get_image()
+		var body_changed := false
+		var sampled_body := false
 		for y in source.get_height():
 			for x in source.get_width():
 				var pixel := source.get_pixel(x, y)
@@ -55,10 +58,15 @@ func _run() -> void:
 				if not is_body:
 					detail_preserved = detail_preserved and pixel == painted.get_pixel(x, y)
 				else:
+					if not sampled_body:
+						body_colours[painted.get_pixel(x, y).to_rgba32()] = true
+						sampled_body = true
 					body_changed = body_changed or pixel != painted.get_pixel(x, y)
-	check(detail_preserved and body_changed and game.lot.paint_textures.size() == 6, "six body palettes preserve non-blue atlas details")
-	if not detail_preserved or not body_changed:
-		print("PALETTE DETAIL preserved=", detail_preserved, " changed=", body_changed, " count=", game.lot.paint_textures.size())
+		if body_changed:
+			changed_palettes += 1
+	check(detail_preserved and changed_palettes == 6 and body_colours.size() == 6 and game.lot.paint_textures.size() == 6, "six distinct body palettes preserve non-blue atlas details")
+	if not detail_preserved or changed_palettes != 6 or body_colours.size() != 6:
+		print("PALETTE DETAIL preserved=", detail_preserved, " changed=", changed_palettes, " distinct=", body_colours.size(), " count=", game.lot.paint_textures.size())
 	# Target neighbours, back curb, side boundaries, and the near row.
 	var contacts := [
 		[Vector3(5, 0.56, -7), -PI / 2, Vector3(1, 0, 0), 0.5],

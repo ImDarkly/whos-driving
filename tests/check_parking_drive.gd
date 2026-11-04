@@ -113,10 +113,19 @@ func _send(mask: int) -> void:
 func _capture(label: String) -> void:
 	if "--capture" not in OS.get_cmdline_user_args():
 		return
+	var directory_error := DirAccess.make_dir_recursive_absolute("res://build")
+	if directory_error != OK:
+		failures += 1
+		push_error("Could not create capture directory: %s" % error_string(directory_error))
+		return
 	for view in ["forward", "right"]:
 		game.look_yaw = 0.0 if view == "forward" else -PI / 2
 		for frame in 3:
 			await process_frame
 		await RenderingServer.frame_post_draw
-		root.get_texture().get_image().save_png("res://build/approach-%s-%s.png" % [label, view])
+		var path := "res://build/approach-%s-%s.png" % [label, view]
+		var save_error := root.get_texture().get_image().save_png(path)
+		if save_error != OK:
+			failures += 1
+			push_error("Could not save %s: %s" % [path, error_string(save_error)])
 	game.look_yaw = 0.0
