@@ -12,6 +12,10 @@ Non-goals: new downloaded art, larger map, extra targets/levels, mandatory rever
 
 Validation: drive from the real spawn through the entrance/aisle into real parking success using only owned commands; update route-specific assertions to the approved aisle layout without weakening ownership, collisions or parking rules. Verify parked-car/boundary contact, recovery/reset, appropriate gameplay/network regression, and native rendering. Human duo playtest judges whether players understand where to go and whether the final approach produces useful coordination; scripted success does not validate difficulty or fun.
 
+Recording follow-up: Oleksandr requested a showcase. A local recording-only launcher may add exterior overview shots and captions around the existing owned-command parking rehearsal, labelled scripted/offline. It must preserve normal gameplay and record real parking success; this is presentation footage, not a human multiplayer playtest. Keep capture scripts, raw recordings and encoded video ignored/local.
+
+Showcase revision: Oleksandr requested more natural rotations, like a human playing. Adjust the recording driver's wheel-input timing to turn while moving, coast and make small corrections; ease its local look-ahead rather than snapping sideways. Preserve the actual handling/controls and retain scripted/offline labelling. This authorizes presentation/input rehearsal changes, not a new handling model.
+
 ---
 
 # Previous approved revision: Parked-car lot — 2026-11-04

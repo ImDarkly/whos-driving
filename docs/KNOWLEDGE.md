@@ -1,3 +1,19 @@
+# Moving-turn showcase revision — 2026-11-04
+
+Oleksandr requested rotations that look more like a human playing. Re-recorded ignored `build/natural-lot-showcase.mp4`: silent H.264/yuv420p, 1280 x 720, 30 fps, 36.633 seconds, 9,707,942 bytes. Continuous approach/parking arcs, brief wheel-input corrections, coasting and eased local look-ahead replace the previous recording's stop/pivot sequence and sideways camera snap. Captions still identify scripted offline footage; no human input or multiplayer evidence is claimed. Production scripts, controls, handling, camera and lot geometry are unchanged.
+
+Ignored `build/record_natural_lot.gd` submits only normalized owned commands through real physics from the real spawn. Headless rehearsal and native recording both reach actual parking success, exit 0. Native command: `--path . --fixed-fps 60 --write-movie build/natural-lot-showcase.avi --script build/record_natural_lot.gd`, 2,203 frames including setup. Observed peak yaw rate 0.792 rad/s; only two physics ticks have yaw above 0.1 rad/s with speed below 0.15 m/s, rather than sustained stationary pivots. Initial rehearsal understeered into a neighbour, and another tried to steer back at an overshot endpoint; adjusted only the ignored driver's timing/tracking and latched final braking. No car-state/tuning/parking writes or gameplay repair.
+
+Existing FFmpeg encoded with 0.1-second startup trim, 30 fps, full-to-limited range conversion, libx264 CRF 20, yuv420p and faststart. FFprobe confirms the final properties; full decode to null exits 0. Inspected frames at 13, 17, 21, 26 and 33 seconds for turning views, captions and actual PARKED feedback. Raw AVI, MP4, launcher, timeline and stills remain ignored/local; original showcase retained. Whether the motion now looks sufficiently natural is Oleksandr's judgement, not established by these metrics.
+
+# Small-lot showcase recording — 2026-11-04
+
+At Oleksandr's request, recorded ignored `build/small-lot-showcase.mp4`: silent H.264, 1280 x 720, 30 fps, 51.300 seconds, 12,376,866 bytes. Exterior overview, cabin-view entrance/aisle/turn, real PARKED feedback and final exterior shot. Captions identify scripted offline inputs; this is not live multiplayer or human playtest evidence.
+
+Executed native Godot `--path . --fixed-fps 60 --write-movie build/small-lot-showcase.avi --script build/record_small_lot.gd`: exit 0, 3,084 recorded frames including setup, actual two-owner command-only route PASS. The ignored launcher copies the verified driver, submits only normalized owned commands and adds recording-only cameras/captions; no transform/velocity/tuning/parking writes. Timeline report records success. Normal gameplay is unchanged.
+
+Existing FFmpeg encoded with `-ss 0.1 -i build/small-lot-showcase.avi -an -vf fps=30 -c:v libx264 -preset fast -crf 20 -pix_fmt yuv420p -movflags +faststart build/small-lot-showcase.mp4`, exit 0. FFprobe confirms codec/resolution/rate/duration/size; full FFmpeg decode to null exits 0. Inspected extracted frames at 2, 10, 26, 44 and 49 seconds: readable captions, colours/markings, cabin view, success UI and final parked position. Raw AVI, MP4, launcher, timeline and verification stills remain ignored/local; no upload or distribution performed.
+
 # Small readable lot checkpoint — 2026-11-04
 
 Implemented the approved revision on `codex/constrained-parking-approach`. The previous 80-car result below was rejected for appearance/readability. This checkpoint awaits human playtesting; adequate difficulty is not established.
