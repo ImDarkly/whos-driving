@@ -4,6 +4,9 @@ extends "res://tests/local_demo.gd"
 func _start() -> void:
 	super._start()
 	load("res://tests/dummy_demo.gd").install_dummies(game)
+	var gaze: Node = load("res://tests/dummy_gaze.gd").new()
+	gaze.name = "DummyGaze"
+	game.add_child(gaze)
 	if DisplayServer.get_name() != "headless":
 		var screen := DisplayServer.screen_get_usable_rect()
 		var size := Vector2i(screen.size.x / 2 - 12, mini(screen.size.y - 80, 720))
