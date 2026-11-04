@@ -8,7 +8,9 @@ var command_mask: int = 0
 var wheels: Array[Node3D] = []
 var wheel_materials: Array[StandardMaterial3D] = []
 var command_markers: Array[Label3D] = []
-const SEATS = [Vector3(-0.48, 1.05, -0.48), Vector3(0.48, 1.05, -0.48), Vector3(-0.48, 1.05, 0.72), Vector3(0.48, 1.05, 0.72)]
+const VISUAL = preload("res://assets/retro_car/retro_car_visual.tscn")
+var visual: Node3D
+var seat_anchors: Array[Node] = []
 var passengers: Array[Node3D] = []
 var speed: float:
 	get: return linear_velocity.dot(-global_basis.z)
@@ -35,56 +37,35 @@ func _ready() -> void:
 	box.size = tuning.body_size
 	shape.shape = box
 	add_child(shape)
-	# Visual-only open cabin; the original collision shape and wheel offsets remain.
-	_box(Vector3(1.85, 0.22, 3.5), Vector3(0, -0.24, 0), Color("f6b94c"))
-	_box(Vector3(1.8, 0.32, 0.6), Vector3(0, 0.25, -1.42), Color("f6b94c"))
-	_box(Vector3(1.7, 0.22, 0.24), Vector3(0, 0.52, -1.03), Color("273a4c"))
-	_box(Vector3(1.8, 0.32, 0.24), Vector3(0, 0.25, 1.56), Color("f6b94c"))
-	for x in [-0.88, 0.88]:
-		_box(Vector3(0.08, 0.45, 2.7), Vector3(x, 0.12, 0.1), Color("f6b94c"))
-		for z in [-1.02, 1.48]:
-			_box(Vector3(0.055, 0.95, 0.055), Vector3(x, 0.86, z), Color("647d89"))
-		_box(Vector3(0.055, 0.055, 2.55), Vector3(x, 1.34, 0.23), Color("647d89"))
+	visual = VISUAL.instantiate()
+	add_child(visual)
+	seat_anchors = visual.get_node("Seats").get_children()
 	var colors := [Color("70d39b"), Color("ec8981"), Color("79b9ef"), Color("d9a1e8")]
 	for index in 4:
-		var seat: Vector3 = SEATS[index]
-		_box(Vector3(0.6, 0.15, 0.6), Vector3(seat.x, 0.12, seat.z), Color("273a4c"))
-		_box(Vector3(0.6, 0.55, 0.12), Vector3(seat.x, 0.43, seat.z + 0.28), Color("273a4c"))
+		var seat := seat_position(index)
 		var head := Node3D.new()
 		head.position = seat
 		add_child(head)
 		var face := MeshInstance3D.new()
 		var sphere := SphereMesh.new()
-		sphere.radius = 0.18
-		sphere.height = 0.36
+		sphere.radius = 0.14
+		sphere.height = 0.28
 		face.mesh = sphere
 		face.material_override = _material(colors[index])
 		head.add_child(face)
 		var label := Label3D.new()
 		label.text = "P%d" % (index + 1)
-		label.position.y = 0.3
+		label.position.y = 0.16
 		label.font_size = 48
-		label.pixel_size = 0.003
+		label.pixel_size = 0.002
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		head.add_child(label)
 		passengers.append(head)
-	for x in [-0.59, 0.59]:
-		_box(Vector3(0.4, 0.18, 0.08), Vector3(x, 0.0, -1.77), Color("fff3c5"))
-		_box(Vector3(0.35, 0.15, 0.08), Vector3(x, 0.0, 1.77), Color("c54d52"))
 	for index in 4:
-		var pivot := Node3D.new()
-		pivot.position = tuning.wheel_positions[index]
-		add_child(pivot)
-		var wheel := MeshInstance3D.new()
-		var cylinder := CylinderMesh.new()
-		cylinder.top_radius = 0.34
-		cylinder.bottom_radius = 0.34
-		cylinder.height = 0.22
-		wheel.mesh = cylinder
-		wheel.rotation.z = PI / 2.0
-		var material := _material(Color("19232d"))
-		wheel.material_override = material
-		pivot.add_child(wheel)
+		var wheel_name: String = ["WheelFL", "WheelFR", "WheelRL", "WheelRR"][index]
+		var pivot := visual.find_child(wheel_name, true, false) as MeshInstance3D
+		var material := pivot.get_active_material(0).duplicate() as StandardMaterial3D
+		pivot.set_surface_override_material(0, material)
 		wheels.append(pivot)
 		wheel_materials.append(material)
 		var marker := Label3D.new()
@@ -140,18 +121,12 @@ func reset_car() -> void:
 func update_wheels() -> void:
 	for index in wheels.size():
 		var command := SharedControls.command(command_mask, index)
-		wheel_materials[index].albedo_color = Color("70d39b") if command > 0 else (Color("ec8981") if command < 0 else Color("19232d"))
+		wheel_materials[index].albedo_color = Color("70d39b") if command > 0 else (Color("ec8981") if command < 0 else Color.WHITE)
 		command_markers[index].text = "↑" if command > 0 else ("↓" if command < 0 else "·")
 
 
-func _box(size: Vector3, offset: Vector3, color: Color) -> void:
-	var mesh := MeshInstance3D.new()
-	var box := BoxMesh.new()
-	box.size = size
-	mesh.mesh = box
-	mesh.position = offset
-	mesh.material_override = _material(color)
-	add_child(mesh)
+func seat_position(index: int) -> Vector3:
+	return (seat_anchors[index] as Node3D).position
 
 
 func _material(color: Color) -> StandardMaterial3D:

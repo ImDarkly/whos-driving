@@ -57,6 +57,8 @@ func _ready() -> void:
 		code_edit.release_focus()
 	)
 	_label(room, "F3 · connection / local channel tests", 14)
+	var credit := _label(room, "Car art: Bricchi Games · itch.io", 13)
+	credit.tooltip_text = "Retro Car With Interior — commercial use allowed, attribution required.\nhttps://bricchi-games.itch.io/retro-car-with-interior"
 	var bottom := _panel(root, Vector2(16, -176), Vector2(600, 160), false, true)
 	instruction = _label(bottom, "LEFT W/S · RIGHT ↑/↓", 19)
 	mapping_label = _label(bottom, "You own all four wheels", 17)
