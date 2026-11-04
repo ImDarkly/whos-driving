@@ -193,6 +193,8 @@ func _host_test() -> void:
 
 
 func _barrier(stage: String) -> void:
+	check(_cabin_matches(), "host seat/presence: " + stage)
+	check(game.look_yaw == 0, "remote look leaves host camera forward: " + stage)
 	reports.clear()
 	_stage.rpc(stage)
 	var expected: int = game.controls.players.size() - 1
@@ -205,13 +207,16 @@ func _barrier(stage: String) -> void:
 @rpc("authority", "call_remote", "reliable")
 func _stage(stage: String) -> void:
 	var ok := true
+	check(_cabin_matches(), "local peer seat/presence: " + stage)
 	match stage:
 		"pair_mapping":
 			ok = game._received_config and game.controls.players.size() == 2 and game.controls.owned_wheels(multiplayer.get_unique_id()) == SharedControls.RIGHT and game.session.peer is EOSGMultiplayerPeer
+			game.look_yaw = 0.6
 		"pair_drive":
 			_pair_drive = true
 		"pair_motion":
 			ok = game.car.rotation.y > 0.2 and game.car.angular_velocity.y > 0.1 and game._rtt_ms >= 0 and game.car.freeze and SharedControls.command(game.active_mask, 0) == -1 and SharedControls.command(game.active_mask, 1) == 1
+			ok = ok and is_equal_approx(game.look_yaw, 0.6)
 		"pair_stop":
 			_pair_drive = false
 		"current_mapping":
@@ -221,21 +226,27 @@ func _stage(stage: String) -> void:
 			ok = game._received_config and game.controls.players.size() == 4
 			var slot: int = game.controls.players.find(multiplayer.get_unique_id())
 			ok = ok and slot > 0 and game.controls.owned_wheels(multiplayer.get_unique_id()) == (1 << slot)
+			game.look_yaw = slot * 0.2
 		"input":
 			game._submit_input.rpc_id(1, SharedControls.drive(SharedControls.WHEELS, 1), 1000, game.controls.epoch, Time.get_ticks_msec())
 		"motion":
 			ok = game.car.position.z < game.TUNING.start_position.z - 0.01 and game.car.command_mask == game.active_mask and game.car.freeze and game._rtt_ms >= 0.0
+			print("VIEW MOTION slot=", game.controls.players.find(game._local_id()), " yaw=", game.look_yaw, " motion_ok=", ok)
+			ok = ok and is_equal_approx(game.look_yaw, game.controls.players.find(game._local_id()) * 0.2)
 		"reset":
+			game.look_yaw = 1.0
+			game.look_pitch = 0.4
 			game.request_reset()
 		"reset_state":
 			# A resting rigid body has tiny solver velocity at floor contact.
-			ok = game.car.linear_velocity.length() < 0.001 and game.car.angular_velocity.length() < 0.001 and game.active_mask == 0 and game.car.global_position.distance_to(game.TUNING.start_position) < 0.1 and not game.parking.success
+			ok = game.car.linear_velocity.length() < 0.001 and game.car.angular_velocity.length() < 0.001 and game.active_mask == 0 and game.car.global_position.distance_to(game.TUNING.start_position) < 0.1 and not game.parking.success and game.look_yaw == 0 and game.look_pitch == 0
 		"parking":
 			ok = game.parking.success and game.success_events == 1 and game.car.position.distance_to(game.TUNING.bay_position + Vector3(0, 0.56, 0)) < 0.2
 		"request_reconfiguration":
+			game.look_yaw = 0.8
 			game._request_config.rpc_id(1)
 		"parking_restored":
-			ok = game.parking.success and game.success_events == 1
+			ok = game.parking.success and game.success_events == 1 and is_equal_approx(game.look_yaw, 0.8)
 		"new_room_context":
 			# Exercise the real room lifecycle subscriptions. Reuse the same host
 			# attempt number, as an unrelated room is allowed to do.
@@ -277,3 +288,17 @@ func _report(ok: bool, stage: String) -> void:
 
 func _now() -> float:
 	return Time.get_ticks_msec() / 1000.0
+
+
+func _cabin_matches() -> bool:
+	# Check independently in every actual peer, including joins and departure.
+	game._update_seated_view()
+	var slot: int = game.controls.players.find(game._local_id())
+	if slot < 0:
+		return false
+	if game.camera.position.distance_to(game.car.to_global(ParkingCar.SEATS[slot])) > 0.001:
+		return false
+	for index in 4:
+		if game.car.passengers[index].visible != (index < game.controls.players.size() and index != slot):
+			return false
+	return true

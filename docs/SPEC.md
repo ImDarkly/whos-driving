@@ -27,6 +27,8 @@ No walking/exiting, real character controllers, animated/networked gaze, voice, 
 
 ### Checkpoint and acceptance
 
+Implementation is available on `codex/first-person-shared-car`; executed validation and remaining manual/online checks are in KNOWLEDGE.md. This remains an experiment awaiting Oleksandr's group-playtest decision.
+
 1. Import and launch the actual scene. Inspect native rendered captures from all four seats, forward and looking toward a friend/rear, with room/debug UI and success feedback. Verify the eye is inside the cabin, the local head is hidden, other occupied seats are visible, and important UI and outside cues are legible.
 2. Exercise mouse look, capture/release, focus loss, reset and seat remapping. Confirm look does not alter the car or another peer's camera. Confirm all counts have unique occupied seats and no phantom passengers after departure. Use bounded meaningful checks for these behaviors and report any manual-only checks explicitly.
 3. Run the existing gameplay and multi-process networking checks appropriate to the changes. Demonstrate an owned-command-only driven approach that can enter and park in the new barrier setup; do not use teleport/success fixtures as evidence of driving feasibility. Adjust a test route if needed, without changing handling or weakening real parking rules. Verify actual barrier collision and reset while touching it. Automated feasibility does not establish human difficulty or fun.

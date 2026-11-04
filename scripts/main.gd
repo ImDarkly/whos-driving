@@ -10,6 +10,9 @@ var lot: TestLot
 var session: ParkingSession
 var hud: ParkingHUD
 var camera: Camera3D
+var look_yaw: float = 0.0
+var look_pitch: float = 0.0
+const LOOK_SENSITIVITY := 0.0025
 var local_slot: int = 0
 ## Tests can inject channel samples while using the real physics loop.
 var manual_inputs: bool = false
@@ -43,8 +46,8 @@ func _ready() -> void:
 	car.tuning = TUNING
 	add_child(car)
 	camera = Camera3D.new()
-	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = 25.0
+	camera.fov = 85.0
+	camera.near = 0.04
 	camera.far = 120.0
 	add_child(camera)
 	camera.current = true
@@ -65,10 +68,10 @@ func _ready() -> void:
 	hud.local_slot_changed.connect(func(slot: int):
 		local_slot = slot
 		_blocked_keys = RAW_KEYS_ALL
+		_reset_look()
 	)
 	_reset_attempt()
-	camera.position = car.position + Vector3(0, 18, 14)
-	camera.look_at(car.position + Vector3(0, 0, -3), Vector3.UP)
+	_update_seated_view()
 
 
 func _physics_process(delta: float) -> void:
@@ -106,14 +109,42 @@ func _process(delta: float) -> void:
 		return
 	if session.online and not session.is_host and _received_config:
 		car.global_transform = car.global_transform.interpolate_with(_remote_target, 1.0 - exp(-TUNING.interpolation_speed * delta))
-	var desired := car.position + Vector3(0, 18, 14)
-	camera.position = camera.position.lerp(desired, 1.0 - exp(-4.0 * delta))
-	camera.look_at(car.position + Vector3(0, 0, -3), Vector3.UP)
+	_update_seated_view()
 	lot.show_parking(parking.success, parking.contained)
 	var authority := "HOST" if session.online and session.is_host else ("CLIENT · host simulates" if session.online else "LOCAL")
 	var latency := "RTT %.0f ms" % _rtt_ms if _rtt_ms >= 0 else "RTT —"
 	var input_text := "Input %s" % SharedControls.describe(active_mask)
 	hud.update_view(session, controls, _local_id(), parking, TUNING, car.speed, "%s · %s\n%s" % [authority, latency, input_text], active_mask)
+	hud.look_hint.text = "Mouse look · Esc releases pointer" if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED else "Click the view to look · Esc releases pointer"
+	hud.room_panel.visible = Input.mouse_mode != Input.MOUSE_MODE_CAPTURED
+
+
+func _update_seated_view() -> void:
+	var seat := clampi(controls.players.find(_local_id()), 0, 3)
+	car.show_passengers(controls.players.size(), seat)
+	camera.global_transform = car.global_transform * Transform3D(Basis.from_euler(Vector3(look_pitch, look_yaw, 0)), ParkingCar.SEATS[seat])
+
+
+func _reset_look() -> void:
+	look_yaw = 0.0
+	look_pitch = 0.0
+
+
+func _input(event: InputEvent) -> void:
+	if event is InputEventKey and event.pressed and event.physical_keycode == KEY_ESCAPE:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		get_viewport().set_input_as_handled()
+	elif event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
+		look_yaw = wrapf(look_yaw - event.relative.x * LOOK_SENSITIVITY, -PI, PI)
+		look_pitch = clampf(look_pitch - event.relative.y * LOOK_SENSITIVITY, -1.15, 1.15)
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT and event.pressed and _focus_active:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		var focused := get_viewport().gui_get_focus_owner()
+		if focused:
+			focused.release_focus()
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -128,6 +159,7 @@ func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		_quit_game.call_deferred()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 		_focus_active = false
 		_blocked_keys = RAW_KEYS_ALL
 		if is_instance_valid(hud):
@@ -214,7 +246,9 @@ func _reset_attempt() -> void:
 		_configure.rpc(controls.players, _snapshot())
 
 
-func _flush_local_input() -> void:
+func _flush_local_input(reset_view: bool = true) -> void:
+	if reset_view:
+		_reset_look()
 	_blocked_keys = RAW_KEYS_ALL
 	_reset_requested_epoch = -1
 	if hud:
@@ -313,11 +347,12 @@ func _request_config() -> void:
 func _configure(ids: Array[int], snapshot: Dictionary) -> void:
 	if not session.online or session.is_host or ids.is_empty() or ids.size() > 4:
 		return
+	var reset_view := not _received_config or controls.epoch != int(snapshot.epoch) or controls.players != ids
 	controls.remap(ids)
 	controls.epoch = int(snapshot.epoch)
 	parking.reset()
 	_received_config = true
-	_flush_local_input()
+	_flush_local_input(reset_view)
 	_apply_snapshot(snapshot, true)
 
 
