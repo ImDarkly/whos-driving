@@ -23,11 +23,14 @@ Commands ran from the repository with `$engine = 'C:/Godot/Godot_v4.6.2-stable_w
 
 - Portability: staged source-only copy via `git checkout-index --all --prefix=build/retro-portable/`, with no `.godot` cache, original download or `eos.local.cfg`. `& $engine --headless --path build/retro-portable --editor --import --quit`: **exit 0**; `--headless --path build/retro-portable --script tests/check_cabin.gd --fixed-fps 60`: **73 checks, zero failures, exit 0**; `--path build/retro-portable --script tests/preview_playable.gd`: **native exit 0**, inspected the fresh friend-facing cabin capture. Final source import also exited 0 after disabling generated LODs/animation import. `git diff --cached --check` passed.
 
+
+- At Oleksandr's explicit request after the visual checkpoint, ran `& ./tests/run_eos_wheels.ps1`: **real same-PC EOS host/client pair, both exit 0** using the existing `host_user` and `client_user` Dev Auth entries. Room creation/code discovery/join used real EOS and `EOSGMultiplayerPeer`, with no ENet fallback. Host/client seat identity and occupancy, independent client gaze, replicated opposing-wheel motion, ownership filtering, stale input, two successive client reset requests, parking fixture/success reconfiguration, host departure and deferred SDK shutdown passed. Logs remain ignored under `build/eos-wheel-{host,client}.{out,err}.log`. No account sign-in UI, installation or portal/settings changes. Parking here uses a fixture; driven feasibility is the separate owned-command suite above. This adds live EOS protocol evidence for the retro revision, not cross-device/Internet, native EOS visual or human-coordination evidence.
+
 ## Playable checkpoint and remaining limits
 
 F5 from `project.godot`. Escape exposes room controls and the car credit; F3 lets local practice select 1–4 participants and each keyboard seat. Inspect forward, sideways, behind and down at the dashboard from each seat; click to look and Escape to release. Coordinate an approach/contact, reset, then park. Check real Alt-Tab/held-key safety. Batch feedback on whether the cabin lets everyone warn about mistakes and see friends, appearance, frustration and voluntary retries. Oleksandr decides adoption and merging.
 
-EOS with this visual revision, three/four-account EOS, cross-device/Internet, exports, human coordinated driving and fun remain unverified. Localhost results do not establish these. The visual cabin is taller than the retained simplified collision box; collision/parking still use the original footprint, with no roof collision added. No push or merge.
+Native EOS visual playtesting, three/four-account EOS, cross-device/Internet, exports, human coordinated driving and fun remain unverified. Localhost results do not establish these. The visual cabin is taller than the retained simplified collision box; collision/parking still use the original footprint, with no roof collision added. No push or merge.
 
 ---
 
