@@ -8,6 +8,8 @@ Use rigid bone weights and separate moving pieces; the approximate mesh count is
 
 No playable integration, changes to cameras, controls, physics, networking, car geometry or seat anchors; no walking, gaze replication or gameplay steering animation. Visual approval and human cabin visibility remain Oleksandr's decision. Validate actual GLB import, skinning and pose retention in Godot, inspect Blender renders and record limitations in KNOWLEDGE.md.
 
+Follow-up authorization: Oleksandr requested running a game demo with the dummies. `tests/dummy_demo.gd` may replace heads in its own offline playable instance, retain labels/local-avatar hiding, apply the measured seated fit and expose existing F3 practice controls. Normal F5 gameplay remains unchanged; this does not adopt permanent character integration or change cameras/handling.
+
 ---
 
 # Previous spec: Retro car visual replacement

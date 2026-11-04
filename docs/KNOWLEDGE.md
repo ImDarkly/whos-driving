@@ -11,6 +11,8 @@ Built on `codex/crash-test-dummy`, after fast-forwarding local main to fetched `
 
 No controls, handling, networking, car scene, passenger code or camera implementation changed. Existing gameplay/network suites were not rerun because no gameplay code was changed. Native Godot character appearance, integrated local-body hiding, labels, multiplayer visibility and human playtesting remain unverified. Shortest art review: open the Blender source, inspect the silhouette and four poses, then compare the four cabin-seat images; report model/fit feedback in one batch before integration.
 
+Follow-up requested game demo: added `tests/dummy_demo.gd`, an offline launcher replacing only its instance's heads with seated, colored dummies, keeping labels and the existing whole-local-passenger hiding. Native `--path . --script tests/dummy_demo.gd -- --capture-only` exited 0 on AMD Radeon/OpenGL 3.3 Compatibility; inspected all four `build/dummy-game-seat-*.png` views, and asserted local-hidden/three-friends-visible for every seat. No errors in that run. Appearance under the existing game lighting is darker/flatter than the Blender studio renders. Launched the interactive script with the installed graphical Godot executable; starts in four-player local practice, F3 changes local seat/count, click looks and Escape releases. No EOS login or networking test. Normal F5 gameplay still uses colored heads. Human visibility/fun and permanent camera/body alignment remain undecided.
+
 ---
 
 # Retro car visual checkpoint — 2026-11-04
