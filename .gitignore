@@ -1,0 +1,47 @@
+# Godot 4 generated editor/import cache (keep .uid and .import sidecars).
+.godot/
+.import/
+# Export output and local export credentials.
+build/
+exports/
+export/
+dist/
+export_credentials.cfg
+# Optional C# generated state.
+.mono/
+/bin/
+/obj/
+.vs/
+.idea/
+# Local EOS configuration and environment credentials.
+.env
+.env.*
+.env-*
+!.env.example
+eos.local.cfg
+*.local.cfg
+*.local.cfg.*
+eos_credentials*.cfg
+eos-credentials*.cfg
+.secrets/
+secrets/
+*.pem
+*.key
+*.p12
+*.pfx
+# Local debug symbols/crash dumps; retain the addon's runtime DLLs.
+*.pdb
+*.ilk
+*.exp
+*.dmp
+*.stackdump
+# OS/editor temporary files.
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
+*.log
+*.log.*
+*.bak
+*.backup
+*~
