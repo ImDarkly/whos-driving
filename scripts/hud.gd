@@ -21,6 +21,7 @@ var code_edit: LineEdit
 var count_select: OptionButton
 var slot_select: OptionButton
 var inject_buttons: Array[Button] = []
+var wheel_labels: Array[Label] = []
 
 
 func _ready() -> void:
@@ -31,7 +32,7 @@ func _ready() -> void:
 	var top := _panel(root, Vector2(22, 18), Vector2(340, 100))
 	var title := _label(top, "WHO'S DRIVING?", 26)
 	title.add_theme_color_override("font_color", Color("f6b94c"))
-	_label(top, "Shared controls · first playable", 15)
+	_label(top, "Wheel forces · playable experiment", 15)
 	_label(top, "Park the whole car. Hold still. Retry.", 15)
 	var room := _panel(root, Vector2(-342, 18), Vector2(320, 170), true)
 	status_label = _label(room, "Local practice", 16)
@@ -56,9 +57,9 @@ func _ready() -> void:
 		code_edit.release_focus()
 	)
 	_label(room, "F3 · connection / local channel tests", 14)
-	var bottom := _panel(root, Vector2(22, -154), Vector2(620, 132), false, true)
-	instruction = _label(bottom, "W forward · S stop / reverse · A/D steer", 19)
-	mapping_label = _label(bottom, "P1: W/A/S/D", 17)
+	var bottom := _panel(root, Vector2(22, -188), Vector2(660, 166), false, true)
+	instruction = _label(bottom, "LEFT W/S · RIGHT ↑/↓", 19)
+	mapping_label = _label(bottom, "You own all four wheels", 17)
 	progress = ProgressBar.new()
 	progress.custom_minimum_size = Vector2(580, 12)
 	progress.show_percentage = false
@@ -67,10 +68,22 @@ func _ready() -> void:
 	var retry_row := HBoxContainer.new()
 	bottom.add_child(retry_row)
 	_button(retry_row, "Retry [R]", func(): reset_requested.emit())
-	_label(retry_row, "  No Space · release keys after reset", 14)
+	_label(retry_row, "  Release held keys after reset / remapping", 14)
+	var diagram := _panel(root, Vector2(-342, -230), Vector2(320, 208), true, true)
+	_label(diagram, "FRONT ↑   ·   WHEEL OWNERS", 16)
+	var wheel_grid := GridContainer.new()
+	wheel_grid.columns = 2
+	wheel_grid.add_theme_constant_override("h_separation", 12)
+	wheel_grid.add_theme_constant_override("v_separation", 20)
+	diagram.add_child(wheel_grid)
+	for index in 4:
+		var cell := _label(wheel_grid, SharedControls.NAMES[index], 16)
+		cell.custom_minimum_size = Vector2(135, 56)
+		wheel_labels.append(cell)
+	_label(diagram, "FL / FR front · RL / RR rear", 13)
 	debug_panel = PanelContainer.new()
 	debug_panel.position = Vector2(22, 140)
-	debug_panel.custom_minimum_size = Vector2(340, 250)
+	debug_panel.custom_minimum_size = Vector2(430, 290)
 	debug_panel.add_theme_stylebox_override("panel", _style())
 	root.add_child(debug_panel)
 	var debug := VBoxContainer.new()
@@ -86,10 +99,11 @@ func _ready() -> void:
 	slot_select.add_item("Keyboard → P1")
 	slot_select.item_selected.connect(func(index: int): local_slot_changed.emit(index))
 	debug.add_child(slot_select)
-	_label(debug, "Toggle actions into their owning channels:", 14)
-	var injections := HBoxContainer.new()
+	_label(debug, "Inject wheel directions (groups stay linked):", 14)
+	var injections := GridContainer.new()
+	injections.columns = 4
 	debug.add_child(injections)
-	for key in ["W", "A", "S", "D"]:
+	for key in ["FL ↑", "FL ↓", "FR ↑", "FR ↓", "RL ↑", "RL ↓", "RR ↑", "RR ↓"]:
 		var button := Button.new()
 		button.text = key
 		button.toggle_mode = true
@@ -101,7 +115,7 @@ func _ready() -> void:
 	debug_panel.visible = false
 
 
-func update_view(session: ParkingSession, controls: SharedControls, local_id: int, parking: ParkingRules, tuning: DriveTuning, speed: float, debug_text: String) -> void:
+func update_view(session: ParkingSession, controls: SharedControls, local_id: int, parking: ParkingRules, tuning: DriveTuning, speed: float, debug_text: String, commands: int) -> void:
 	status_label.text = session.status
 	host_button.disabled = session.busy or session.lobby != null
 	join_button.disabled = host_button.disabled
@@ -111,12 +125,18 @@ func update_view(session: ParkingSession, controls: SharedControls, local_id: in
 	slot_select.disabled = count_select.disabled
 	for button in inject_buttons:
 		button.disabled = count_select.disabled
-	var parts: PackedStringArray = []
-	for index in controls.players.size():
-		var id := controls.players[index]
-		parts.append("P%d%s: %s" % [index + 1, " (you)" if id == local_id else "", SharedControls.describe(controls.owned_mask(id))])
-	mapping_label.text = "    ".join(parts)
-	instruction.text = "PARKED!  Retry together [R]" if parking.success else "W forward · S stop / reverse · A/D steer"
+	for index in 4:
+		var owner := -1
+		for slot in controls.players.size():
+			if controls.owned_wheels(controls.players[slot]) & (1 << index):
+				owner = slot
+		var yours := owner >= 0 and controls.players[owner] == local_id
+		var command := SharedControls.command(commands, index)
+		wheel_labels[index].text = "%s · P%d%s\n%s" % [SharedControls.NAMES[index], owner + 1, " YOU" if yours else "", SharedControls.command_text(command)]
+		wheel_labels[index].modulate = Color("70d39b") if command > 0 else (Color("ec8981") if command < 0 else Color("e1e9ed"))
+	mapping_label.text = "%d player%s · You own %s" % [controls.players.size(), "s" if controls.players.size() > 1 else "", SharedControls.describe_wheels(controls.owned_wheels(local_id))]
+	var keys := "LEFT W/S · RIGHT ↑/↓" if controls.players.size() == 1 else "W/S · your wheels forward / reverse"
+	instruction.text = "PARKED!  Retry together [R]" if parking.success else keys + "\nRelease to coast · opposite drive slows then reverses"
 	progress.value = parking.held / tuning.parking_hold
 	debug_label.text = "%s\nSpeed %.2f m/s · attempt %d\n%s" % [debug_text, speed, controls.epoch, "Fully inside bay" if parking.contained else "Outside bay"]
 

@@ -1,6 +1,7 @@
 extends Node3D
 
 const TUNING: DriveTuning = preload("res://tuning.tres")
+const RAW_KEYS_ALL: int = 15
 
 var controls := SharedControls.new()
 var parking := ParkingRules.new()
@@ -18,21 +19,22 @@ var _success_epoch: int = -1
 var _sequence: int = 0
 var _snapshot_sequence: int = 0
 var _last_snapshot: int = -1
-var _blocked_keys: int = SharedControls.ALL
+var _blocked_keys: int = RAW_KEYS_ALL
 var _input_clock: float = 0.0
 var _snapshot_clock: float = 0.0
 var _host_last_seen: float = 0.0
 var _received_config: bool = false
 var _remote_target := Transform3D.IDENTITY
 var _remote_velocity := Vector3.ZERO
-var _remote_yaw_speed: float = 0.0
-var _remote_steering: float = 0.0
+var _remote_angular_velocity := Vector3.ZERO
 var _rtt_ms: float = -1.0
 var _focus_active: bool = true
 var _reset_requested_epoch: int = -1
+var _quitting: bool = false
 
 
 func _ready() -> void:
+	get_tree().auto_accept_quit = false
 	lot = TestLot.new()
 	add_child(lot)
 	lot.build(TUNING)
@@ -62,7 +64,7 @@ func _ready() -> void:
 	hud.local_count_changed.connect(set_local_count)
 	hud.local_slot_changed.connect(func(slot: int):
 		local_slot = slot
-		_blocked_keys = SharedControls.ALL
+		_blocked_keys = RAW_KEYS_ALL
 	)
 	_reset_attempt()
 	camera.position = car.position + Vector3(0, 18, 14)
@@ -70,13 +72,14 @@ func _ready() -> void:
 
 
 func _physics_process(delta: float) -> void:
+	car.freeze = not _authority()
 	_input_clock += delta
 	if not manual_inputs and _input_clock >= 1.0 / TUNING.input_hz:
 		_input_clock = 0.0
 		_sample_input()
 	if _authority():
 		active_mask = controls.merged(_now(), TUNING.stale_input_seconds)
-		car.step(active_mask, delta)
+		car.set_commands(active_mask)
 		if parking.tick(car, TUNING, delta):
 			success_events += 1
 			_success_epoch = controls.epoch
@@ -93,11 +96,9 @@ func _physics_process(delta: float) -> void:
 			return
 		if not _received_config:
 			return
-		car.velocity = _remote_velocity
-		car.yaw_speed = _remote_yaw_speed
-		car.steering = _remote_steering
-		car.speed = _remote_velocity.dot(-_remote_target.basis.z)
-		car.update_wheels()
+		car.linear_velocity = _remote_velocity
+		car.angular_velocity = _remote_angular_velocity
+		car.set_commands(active_mask)
 
 
 func _process(delta: float) -> void:
@@ -112,7 +113,7 @@ func _process(delta: float) -> void:
 	var authority := "HOST" if session.online and session.is_host else ("CLIENT · host simulates" if session.online else "LOCAL")
 	var latency := "RTT %.0f ms" % _rtt_ms if _rtt_ms >= 0 else "RTT —"
 	var input_text := "Input %s" % SharedControls.describe(active_mask)
-	hud.update_view(session, controls, _local_id(), parking, TUNING, car.speed, "%s · %s\n%s" % [authority, latency, input_text])
+	hud.update_view(session, controls, _local_id(), parking, TUNING, car.speed, "%s · %s\n%s" % [authority, latency, input_text], active_mask)
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -124,13 +125,23 @@ func _unhandled_key_input(event: InputEvent) -> void:
 
 
 func _notification(what: int) -> void:
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		_quit_game.call_deferred()
+	elif what == NOTIFICATION_APPLICATION_FOCUS_OUT:
 		_focus_active = false
-		_blocked_keys = SharedControls.ALL
+		_blocked_keys = RAW_KEYS_ALL
 		if is_instance_valid(hud):
 			hud.clear_injections()
 	elif what == NOTIFICATION_APPLICATION_FOCUS_IN:
 		_focus_active = true
+
+
+func _quit_game() -> void:
+	if _quitting:
+		return
+	_quitting = true
+	await session.shutdown()
+	get_tree().quit()
 
 
 func _authority() -> bool:
@@ -145,7 +156,7 @@ func _local_id() -> int:
 
 func _raw_keys() -> int:
 	var mask: int = 0
-	for item in [[KEY_W, SharedControls.W], [KEY_A, SharedControls.A], [KEY_S, SharedControls.S], [KEY_D, SharedControls.D]]:
+	for item in [[KEY_W, 1], [KEY_S, 2], [KEY_UP, 4], [KEY_DOWN, 8]]:
 		if Input.is_physical_key_pressed(item[0]):
 			mask |= int(item[1])
 	return mask
@@ -156,12 +167,13 @@ func _sample_input() -> void:
 	# A control held through reset/remapping/focus loss stays blocked until released.
 	_blocked_keys &= raw
 	var focus := get_viewport().gui_get_focus_owner()
-	var mask := raw & ~_blocked_keys if _focus_active and not focus is LineEdit else 0
+	var keys := raw & ~_blocked_keys if _focus_active and not focus is LineEdit else 0
+	var mask := controls.keyboard_mask(_local_id(), keys)
 	_sequence += 1
 	if session.online:
 		if not _received_config and not session.is_host:
 			return
-		mask &= controls.owned_mask(_local_id())
+		mask = controls.normalize(_local_id(), mask)
 		if session.is_host:
 			controls.submit(1, mask, _sequence, controls.epoch, _now())
 		else:
@@ -203,7 +215,7 @@ func _reset_attempt() -> void:
 
 
 func _flush_local_input() -> void:
-	_blocked_keys = SharedControls.ALL
+	_blocked_keys = RAW_KEYS_ALL
 	_reset_requested_epoch = -1
 	if hud:
 		hud.clear_injections()
@@ -272,7 +284,7 @@ func _submit_input(mask: int, sequence: int, attempt: int, client_msec: int) -> 
 	var sample: Dictionary = controls.samples.get(id, {})
 	if not sample.is_empty() and _now() - float(sample.received) < 1.0 / 60.0:
 		return
-	if controls.submit(id, mask & SharedControls.ALL, sequence, attempt, _now()):
+	if controls.submit(id, mask & SharedControls.ALL_INPUT, sequence, attempt, _now()):
 		# Echo the sender's own clock; no synchronized wall clocks are assumed.
 		_input_ack.rpc_id(id, client_msec)
 
@@ -311,8 +323,8 @@ func _configure(ids: Array[int], snapshot: Dictionary) -> void:
 
 func _snapshot() -> Dictionary:
 	return {"sequence": _snapshot_sequence, "epoch": controls.epoch,
-		"transform": car.global_transform, "velocity": car.velocity,
-		"yaw_speed": car.yaw_speed, "steering": car.steering,
+		"transform": car.global_transform, "velocity": car.linear_velocity,
+		"angular_velocity": car.angular_velocity,
 		"held": parking.held, "success": parking.success,
 		"contained": parking.contained, "input": active_mask}
 
@@ -331,8 +343,7 @@ func _apply_snapshot(snapshot: Dictionary, snap: bool) -> void:
 	_host_last_seen = _now()
 	_remote_target = snapshot.transform
 	_remote_velocity = snapshot.velocity
-	_remote_yaw_speed = float(snapshot.yaw_speed)
-	_remote_steering = float(snapshot.steering)
+	_remote_angular_velocity = snapshot.angular_velocity
 	parking.held = float(snapshot.held)
 	if bool(snapshot.success):
 		_parking_success(controls.epoch)
@@ -340,11 +351,9 @@ func _apply_snapshot(snapshot: Dictionary, snap: bool) -> void:
 	active_mask = int(snapshot.input)
 	if snap:
 		car.global_transform = _remote_target
-		car.velocity = _remote_velocity
-		car.speed = _remote_velocity.dot(-_remote_target.basis.z)
-		car.steering = _remote_steering
-		car.yaw_speed = _remote_yaw_speed
-		car.update_wheels()
+		car.linear_velocity = _remote_velocity
+		car.angular_velocity = _remote_angular_velocity
+		car.set_commands(active_mask)
 		car.reset_physics_interpolation()
 
 

@@ -2,7 +2,7 @@
 
 ## Decision and approval status
 
-Design revision in chat on 2026-11-04. Oleksandr selected independent wheel drive/reverse, no steering and no brake control, with support for 1–4 total players. This replaces shared WASD and the previous steering/braking model. This session is design writing; implementation of this revision has not started. The proposals below need scope approval before building.
+Design revision in chat on 2026-11-04. Oleksandr selected independent wheel drive/reverse, no steering and no brake control, with support for 1–4 total players. His subsequent implementation request approved the ownership and handling contract below. This replaces shared WASD and the previous steering/braking model. The revised playable is implemented; execution evidence and outstanding checks are in KNOWLEDGE.md. Approval to build is separate from adopting the experiment after playtesting.
 
 Question: can friends coordinating individual wheel forces make parking awkward, understandable and engaging enough to voluntarily retry? Extra difficulty is intended; enjoyment remains a hypothesis until playtested and explicitly adopted.
 
@@ -16,7 +16,7 @@ Original brief: [Milestone 1 — Temporary Wheel Controls](https://app.notion.co
 - Support solo, duo, trio and four-player sessions from the first revised playable. Multiplayer remains the priority.
 - One flat lot, primitive car, marked bay and readable follow camera. No obstacles initially, passengers, character controllers or optional asset dependency.
 
-## Proposed ownership and inputs — awaiting approval
+## Approved ownership and inputs
 
 Assign in stable player order; all four wheels remain owned:
 
@@ -27,14 +27,25 @@ Assign in stable player order; all four wheels remain owned:
 | 3 | Front-left | Front-right | Both rear wheels | — |
 | 4 | Front-left | Front-right | Rear-left | Rear-right |
 
-Grouped wheels receive the same command. This makes solo manageable, duo coordination about the two sides, trio asymmetric, and four-player coordination about individual corners. Every wheel is still simulated individually. Exact keyboard bindings remain open: solo needs two forward/reverse pairs; each multiplayer participant needs one pair. No role rotation in this milestone.
+Grouped wheels receive the same command. This makes solo manageable, duo coordination about the two sides, trio asymmetric, and four-player coordination about individual corners. Every wheel is still simulated individually. No role rotation in this milestone.
+
+Keyboard bindings (physical key positions):
+
+| Session | Forward / reverse |
+| --- | --- |
+| Solo, left wheels | W / S |
+| Solo, right wheels | Up / Down arrows |
+| Multiplayer, all wheels assigned to you | W / S |
+| Any player | R resets; F3 shows connection state and local channel tests |
+
+The arrow pair has no effect in multiplayer. A/D and Space have no driving action. The persistent two-by-two wheel diagram labels front/rear, owner, local ownership and authoritative command. Green/up means forward, red/down reverse, neutral is explicitly labelled.
 
 - Holding forward/reverse applies force in that direction at the owned wheel(s). Reverse against forward motion first opposes that motion; it does not instantly reverse velocity. Forward acts similarly against reverse motion.
 - Release means neutral/coasting with passive rolling resistance, without automatic active braking. Both directions held together produce neutral.
 - Show a wheel diagram with owners, local controls and each wheel's current command. Ownership must be understandable without a debug panel.
 - Player-count changes safely reset the attempt and mapping. Local independent channel injection permits ownership checks without four logins.
 
-## Proposed handling contract — awaiting approval
+## Approved handling contract
 
 Use a stable arcade approximation with built-in 3D collision and fixed steps. Forces at wheel positions must affect translation and rotation. The previous bicycle-steering implementation cannot establish this behavior.
 
@@ -59,7 +70,7 @@ Choose the smallest stable physics and session structure within scope. Verify EO
 
 No steering controls, separate brake controls, scoring, damage, replays, progression, role rotation, multiple vehicles/control schemes, elaborate menus, cosmetics, voice or new modes. No final adoption of the experiment before playtesting.
 
-## Build checkpoints after scope approval
+## Build checkpoints
 
 1. Local handling: visible wheel ownership and commands; forward/reverse/coast, force-driven turning, parking and reset. Verify ownership and safe remapping for all four player counts. Demonstrate turning without steer input or directly setting heading from input.
 2. Online playable: EOSG room-code host/join with up to four total players; one host simulation; shared motion/success and repeated reset; safe disconnect and inspectable connection/latency. Preserve session recovery behavior.
