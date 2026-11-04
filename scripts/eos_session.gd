@@ -23,6 +23,7 @@ var busy: bool = false
 var online: bool = false
 var is_host: bool = true
 var _platform_ready: bool = false
+var _login_ready: bool = false
 var _connecting_since: float = 0.0
 var _leaving: bool = false
 var dev_auth: Dictionary = {"enabled": false, "account": "", "server": "localhost:8081", "error": ""}
@@ -214,16 +215,17 @@ func _login() -> bool:
 			status = "EOS initialization failed. Check the local config and logs."
 			return false
 		_platform_ready = true
-	if HAuth.product_user_id.is_empty():
+	# HAuth may publish a newly created PUID before the confirmation login fails.
+	# That partial identity is not proof that this session completed login.
+	if not _login_ready or HAuth.product_user_id.is_empty():
+		_login_ready = false
 		if dev_auth.enabled:
-			return await _login_developer()
+			_login_ready = await _login_developer()
+			return _login_ready
 		status = "Connecting to EOS…"
 		# Preserve any existing device identity. The addon's anonymous helper deletes
 		# it before login, which is unnecessary here and disrupts parallel instances.
-		var create := EOS.Connect.CreateDeviceIdOptions.new()
-		create.device_model = OS.get_name()
-		EOS.Connect.ConnectInterface.create_device_id(create)
-		var result: Dictionary = await IEOS.connect_interface_create_device_id_callback
+		var result: Dictionary = await _create_device_id_async()
 		if not EOS.is_success(result) and result.result_code != EOS.Result.DuplicateNotAllowed:
 			status = "EOS device login failed: %s" % EOS.result_str(result)
 			return false
@@ -233,17 +235,30 @@ func _login() -> bool:
 		login.user_login_info = EOS.Connect.UserLoginInfo.new()
 		login.user_login_info.display_name = "Driver"
 		HAuth.auto_fetch_external_account = false
-		if not await HAuth.login_game_services_async(login):
+		if not await _connect_device_login_async(login):
 			status = "EOS login failed. Check Connect permissions and logs."
 			return false
 		# On a first-ever device login, HAuth may create the Product User after the
 		# login callback. Log in once more so the native peer mediator and runtime
 		# both observe the new identity through their login callback listeners.
 		if EOSGRuntime.local_product_user_id != HAuth.product_user_id:
-			if not await HAuth.login_game_services_async(login):
+			if not await _connect_device_login_async(login):
 				status = "EOS new-user login failed. Retry Host/Join."
 				return false
+		_login_ready = true
 	return true
+
+
+## SDK boundaries kept separate so failure/retry tests never contact EOS.
+func _create_device_id_async() -> Dictionary:
+	var create := EOS.Connect.CreateDeviceIdOptions.new()
+	create.device_model = OS.get_name()
+	EOS.Connect.ConnectInterface.create_device_id(create)
+	return await IEOS.connect_interface_create_device_id_callback
+
+
+func _connect_device_login_async(options: EOS.Connect.LoginOptions) -> bool:
+	return await HAuth.login_game_services_async(options)
 
 
 func _login_developer() -> bool:

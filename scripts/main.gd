@@ -210,6 +210,9 @@ func _flush_local_input() -> void:
 
 
 func _room_started() -> void:
+	# Attempt numbers belong to a room, so another room may reuse this value.
+	_success_epoch = -1
+	parking.reset()
 	_rtt_ms = -1.0
 	_last_snapshot = -1
 	_host_last_seen = _now()
@@ -225,6 +228,7 @@ func _room_started() -> void:
 
 
 func _room_ended(_reason: String) -> void:
+	_success_epoch = -1
 	_received_config = false
 	_rtt_ms = -1.0
 	controls.remap([1])
@@ -346,8 +350,12 @@ func _apply_snapshot(snapshot: Dictionary, snap: bool) -> void:
 
 @rpc("authority", "call_remote", "reliable", 0)
 func _parking_success(attempt: int) -> void:
-	if attempt == controls.epoch and _success_epoch != attempt:
-		parking.success = true
+	if attempt != controls.epoch:
+		return
+	# Configuration can rebuild parking state for an already-observed attempt.
+	# Always restore the state; deduplicate only the announcement/counter.
+	parking.success = true
+	if _success_epoch != attempt:
 		_success_epoch = attempt
 		success_events += 1
 

@@ -87,6 +87,18 @@ func _host_test() -> void:
 	await get_tree().create_timer(1.6).timeout
 	check(game.parking.success, "host verifies parking")
 	await _barrier("parking")
+	await _barrier("request_reconfiguration")
+	await get_tree().create_timer(0.15).timeout
+	await _barrier("parking_restored")
+	game._parking_success.rpc(game.controls.epoch)
+	await get_tree().create_timer(0.1).timeout
+	await _barrier("parking_restored")
+	await _barrier("new_room_context")
+	await get_tree().create_timer(0.15).timeout
+	await _barrier("new_room_parked")
+	await _barrier("request_reconfiguration")
+	await get_tree().create_timer(0.15).timeout
+	await _barrier("new_room_parked")
 	var before_disconnect: int = game.controls.epoch
 	_stage.rpc_id(game.controls.players.back(), "disconnect")
 	var disconnect_deadline := _now() + 3.0
@@ -131,6 +143,17 @@ func _stage(stage: String) -> void:
 			ok = game.car.velocity == Vector3.ZERO and game.car.global_position.distance_to(game.TUNING.start_position) < 0.1 and not game.parking.success
 		"parking":
 			ok = game.parking.success and game.success_events == 1 and game.car.position.distance_to(game.TUNING.bay_position + Vector3(0, 0.56, 0)) < 0.2
+		"request_reconfiguration":
+			game._request_config.rpc_id(1)
+		"parking_restored":
+			ok = game.parking.success and game.success_events == 1
+		"new_room_context":
+			# Exercise the real room lifecycle subscriptions. Reuse the same host
+			# attempt number, as an unrelated room is allowed to do.
+			game.session.room_ended.emit("Test room handoff")
+			game.session.room_started.emit()
+		"new_room_parked":
+			ok = game.parking.success and game.success_events == 2 and game.hud.instruction.text.begins_with("PARKED")
 		"disconnect":
 			peer.close()
 			game.session.leave_room("Test client left.")

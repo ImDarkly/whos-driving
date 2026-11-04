@@ -83,7 +83,8 @@ func setup_eos_async(p_creds: HCredentials) -> bool:
 	init_opts.product_version = p_creds.product_version
 	
 	var init_ret: EOS.Result = await initialize_async(init_opts)
-	if not EOS.is_success(init_ret):
+	# SDK initialization survives a failed platform creation; permit setup retries.
+	if not (EOS.is_success(init_ret) or init_ret == EOS.Result.AlreadyConfigured):
 		return false
 
 	var create_opts = EOS.Platform.CreateOptions.new()
@@ -128,7 +129,7 @@ func initialize_async(opts: EOS.Platform.InitializeOptions) -> EOS.Result:
 	var res: EOS.Result = EOS.Platform.PlatformInterface.initialize(opts)
 	
 	var retry_count = INITIALIZE_RETRY_COUNT
-	while not EOS.is_success(res) and retry_count > 0:
+	while not (EOS.is_success(res) or res == EOS.Result.AlreadyConfigured) and retry_count > 0:
 		if not EOS.is_success(res) and retry_count > 0:
 			_log.debug("Failed to initialize EOS SDK: result_code=%s, retry_count=%s" % [EOS.result_str(res), INITIALIZE_RETRY_COUNT - retry_count + 1])
 		
