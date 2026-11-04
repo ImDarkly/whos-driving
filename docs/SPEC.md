@@ -1,3 +1,7 @@
+# Repository distribution decision — 2026-11-04
+
+Oleksandr requested conservative exclusion from Git of the Epic EOS SDK runtime, `xaudio2_9redist.dll` and Bricchi-derived car assets while redistribution rights remain unconfirmed. This supersedes earlier instructions to track/distribute those dependencies, without changing the approved local gameplay or visual behavior. Keep verified local backups outside Git and working copies in place. Retain the MIT EOSG wrapper, attribution, original character work and our car scene/seat markers. Exclude car-containing cabin preview renders too. Restore instructions and executed cleanup evidence live in KNOWLEDGE.md. No history rewrite, push or merge is authorized; historical public copies remain public.
+
 # Current spec: Crash-test dummy asset
 
 ## Approved scope — 2026-11-04
