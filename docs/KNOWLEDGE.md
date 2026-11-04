@@ -1,3 +1,22 @@
+# Parked-car lot checkpoint — 2026-11-04
+
+Approved follow-up implemented on the same experiment branch. This supersedes the barrier geometry described in the previous checkpoint below; it does not adopt the experiment.
+
+- `test_lot.gd` reuses the existing local retro-car visual for 80 stationary cars, each with its own simplified 2.24 x 1.1 x 3.6 m collision box, matching the playable car's retained footprint. Two side-on rows reach the existing outer perimeter, leaving 4.5 m openings centered at (x,z) (-0.5,3) and (5,-4). Four surrounding rows and marked spaces make the existing 50 m lot read as a parking lot. Three parked neighbours replace the original bay barriers. No continuous invisible walls between cars; real bumper gaps are too narrow for the vehicle. Row spacing is fitted inside the perimeter without overlapping cars. The middle aisle has 4.76 m clear depth for turning/recovery. Spawn, target bay, controls, handling, camera, parking rules and production protocol are unchanged. No new art/dependencies or distribution changes.
+- Updated only the test driver's waypoints and turn-completion precision. Its initial loose turn finish left lateral error, then attempted a sideways correction beside the bay neighbours, timing out after already earning PARKED. Tightened its angular error/rate completion from 0.02 rad / 0.07 rad/s to 0.01 / 0.015; no gameplay tuning or parking assertions relaxed. Long speed/coast and perimeter test fixtures moved to clear ground in the revised lot. Native exterior inspection caught protruding row-end cars; fitted row spacing before the final geometry checks and capture.
+
+Executed with installed `C:/Godot/Godot_v4.6.2-stable_win64_console.exe` from this checkout:
+
+- `--headless --path . --script tests/check_parking_drive.gd --fixed-fps 60`: real spawn-to-success PASS for solo, duo, trio and four players, exit 0, on final row geometry. Only normalized owned commands; opening order, both turn directions, bounds and real parking success remain asserted. No car-state/parking manipulation.
+- Same flags with `tests/check_approach.gd`: 30 checks, zero failures, exit 0. Confirms 80 parked cars, separate footprints inside the lot, a ray through a visible bumper gap without hidden collision, only one vehicle-width opening per blocking row, six actual contacts (including between bumpers and all three target neighbours), recovery and reset while touching.
+- Same flags with `tests/check_playable.gd`: 127 checks, zero failures, exit 0. `--path . --script tests/check_cabin.gd --fixed-fps 60`: native AMD Radeon/OpenGL Compatibility, 76 checks, zero failures, exit 0; its original contact cases now touch the bay's parked neighbours.
+- `./tests/run_network.ps1`: all four separate localhost ENet peers exit 0, clean stderr; existing production-RPC ownership/motion/seat/reset/success/remapping/departure checks pass. No live EOS/Internet validation.
+- `--path . --script tests/preview_playable.gd`: native exit 0. Inspected actual spawn views and rear-seat occlusion, plus final ignored `build/parking-lot-exterior.png`: rows/markings, clear offset route, green target and cars contained by the perimeter. Exterior camera is preview-only; normal gameplay stays seated. All 13 retained local dependency/preview hashes and six unrelated local config/UID files match their preservation copies.
+- `--path . --script tests/check_parking_drive.gd --fixed-fps 60 -- --capture`: final native duo route PASS, exit 0, with actual PARKED feedback. Captures remain ignored under `build/`; scripted feasibility does not establish human difficulty.
+- `git diff --cached --check` passes; existing bounded `build/audit_secrets.ps1 -StagedOnly` scanned 130 files/eight binaries with zero findings. Pre-existing project/export/UID work stays outside this checkpoint.
+
+Shortest duo playtest: Host/Join, warn about the parked cars, pass opening one, turn right across the aisle then left through opening two into the green bay. Try harmless contact/recovery, shared R reset and another attempt. Judge whether the intended bay/route is readable, both players can warn in time, and mistakes feel recoverable. Human difficulty/fun, OS Alt-Tab, new exports and current EOS/Internet behavior remain unverified.
+
 # Constrained approach checkpoint — 2026-11-04
 
 Implemented on `codex/constrained-parking-approach` from fetched/fast-forwarded main `e1dff81` (merged dummy PR #5). Scope is in SPEC.md; adoption and sufficient difficulty remain playtest decisions.

@@ -49,5 +49,15 @@ func _run() -> void:
 		await physics_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://build/parking-success.png")
+	# Inspection-only exterior shot; normal gameplay retains its seated camera.
+	game.set_process(false)
+	game.hud.visible = false
+	game.camera.fov = 55
+	game.camera.position = Vector3(30, 38, 34)
+	game.camera.look_at(Vector3.ZERO)
+	for frame in 3:
+		await process_frame
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://build/parking-lot-exterior.png")
 	print("PREVIEW CAPTURED: build/local-playable.png, channel-debug.png, wheel-commands.png, parking-success.png")
 	quit(0 if game.parking.success else 1)

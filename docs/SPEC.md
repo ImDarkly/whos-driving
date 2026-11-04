@@ -1,3 +1,17 @@
+# Approved revision: Parked-car lot — 2026-11-04
+
+Status: Oleksandr approved this scope in chat. Build and validate on the current experiment branch; adoption remains a playtest decision.
+
+Intended feel: weave through a busy parking lot, with parked cars to warn about instead of a barrier maze.
+
+Scope: replace the inner approach barriers with stationary parked cars using the existing local retro-car asset and add marked parking rows across the surrounding lot. Reuse static instances, with solid collision matching each parked car; no invisible continuous walls across visible gaps. Arrange the rows to retain a short approach with two offset openings, turns in both directions and blocked broad shortcuts. Adjust parked-car positions and opening clearance for their actual footprint; retain the current spawn and target bay where feasible, reporting a concrete blocker before moving either. Keep the target bay clearly identifiable and use the existing outer perimeter to contain the lot. Inspect the actual seated views and keep room to recover.
+
+Non-goals: moving/pushable cars, traffic AI, new downloaded art, character/gaze adoption, controls/handling/camera changes, new parking rules, damage, penalties, extra levels or a larger driving course. Surrounding rows provide visual scale rather than expanding the task. Existing local-only asset/distribution restrictions remain in force.
+
+Validation: owned-command-only driving from real spawn through both openings to real parking success; actual parked-car collisions, recovery and shared reset; appropriate gameplay/network regressions; native cabin and exterior inspection. A duo playtest must judge readability, warnings and difficulty. Automated feasibility does not establish fun or adoption.
+
+---
+
 # Approved experiment: Constrained parking approach — 2026-11-04
 
 Status: Oleksandr approved this experiment and requested implementation in a separate chat on a new branch from synced main. The playable checkpoint is implemented on `codex/constrained-parking-approach`; adoption remains a playtest decision. Executed validation and supporting playtest observations live in KNOWLEDGE.md.

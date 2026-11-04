@@ -2,43 +2,35 @@ class_name TestLot
 extends Node3D
 
 var bay_fill: MeshInstance3D
+const PARKED_VISUAL = preload("res://assets/retro_car/retro_car_visual.tscn")
 @export var barrier_gap: float = 0.3
-@export var barrier_height: float = 1.15
-## Closed approach: two offset openings, with space between to pivot/recover.
-@export var approach_left: float = -4.5
-@export var approach_right: float = 9.0
-@export var approach_back: float = 9.5
-@export var approach_end: float = -11.5
+@export var approach_left: float = -25.0
+@export var approach_right: float = 25.0
+@export var approach_back: float = 25.0
+@export var approach_end: float = -25.0
 @export var opening_width: float = 4.5
-@export var first_opening := Vector2(-0.5, 2.0)
-@export var second_opening := Vector2(5.0, -3.5)
+@export var first_opening := Vector2(-0.5, 3.0)
+@export var second_opening := Vector2(5.0, -4.0)
+var parked_cars: Array[StaticBody3D] = []
 
 
 func build(tuning: DriveTuning) -> void:
 	_box(Vector3(50, 0.4, 50), Vector3(0, -0.2, 0), Color("35444d"), true)
-	# Retain the outer lot; the closed inner boundary prevents broad shortcuts.
+	# Rows reach the existing perimeter, closing broad shortcuts.
 	for x in [-25.0, 25.0]:
 		_box(Vector3(0.4, 0.7, 50), Vector3(x, 0.35, 0), Color("75868c"), true)
 	for z in [-25.0, 25.0]:
 		_box(Vector3(50, 0.7, 0.4), Vector3(0, 0.35, z), Color("75868c"), true)
-	for x in range(-20, 25, 5):
-		_box(Vector3(0.025, 0.008, 48), Vector3(x, 0.005, 0), Color("42535b"))
-	for z in range(-20, 25, 5):
-		_box(Vector3(48, 0.008, 0.025), Vector3(0, 0.005, z), Color("42535b"))
-	_build_approach()
+	_build_parked_lot(tuning)
 	var bay := Node3D.new()
 	bay.position = tuning.bay_position
 	bay.rotation.y = tuning.bay_yaw
 	add_child(bay)
-	# Outside containment, with the near end and left side open for an approach.
-	var side_x := tuning.bay_size.x / 2.0 + barrier_gap + 0.15
-	var end_z := -tuning.bay_size.y / 2.0 - barrier_gap - 0.15
-	_box(Vector3(0.3, barrier_height, tuning.bay_size.y), Vector3(side_x, barrier_height / 2, 0), Color("cf8157"), true, bay)
-	_box(Vector3(tuning.bay_size.x + 0.6, barrier_height, 0.3), Vector3(0, barrier_height / 2, end_z), Color("cf8157"), true, bay)
-	for z in range(-2, 3):
-		_box(Vector3(0.32, 0.12, 0.3), Vector3(side_x, barrier_height - 0.15, z), Color("fff3c5"), false, bay)
-	for x in [-1.0, 0.0, 1.0]:
-		_box(Vector3(0.3, 0.12, 0.32), Vector3(x, barrier_height - 0.15, end_z), Color("fff3c5"), false, bay)
+	# Neighbouring parked cars frame the target without changing its rules.
+	var side_x := tuning.bay_size.x / 2 + barrier_gap + tuning.body_size.x / 2
+	for side in [-1.0, 1.0]:
+		_park_car(tuning.bay_position + Vector3(side * side_x, 0, 0), tuning.bay_yaw, tuning)
+	_park_car(tuning.bay_position + Vector3(0, 0, -tuning.bay_size.y / 2 - barrier_gap - tuning.body_size.z / 2), tuning.bay_yaw, tuning)
 	bay_fill = _box(Vector3(tuning.bay_size.x, 0.012, tuning.bay_size.y), Vector3(0, 0.015, 0), Color("42665d"), false, bay)
 	for x in [-tuning.bay_size.x / 2.0, tuning.bay_size.x / 2.0]:
 		_box(Vector3(0.1, 0.025, tuning.bay_size.y + 0.1), Vector3(x, 0.035, 0), Color("bde8be"), false, bay)
@@ -73,24 +65,52 @@ func show_parking(success: bool, contained: bool) -> void:
 	material.albedo_color = Color("68a877") if success else (Color("527b67") if contained else Color("42665d"))
 
 
-func _build_approach() -> void:
-	for x in [approach_left, approach_right]:
-		_approach_barrier(Vector3(0.4, barrier_height, approach_back - approach_end + 0.4), Vector3(x, barrier_height / 2, (approach_back + approach_end) / 2))
-	for z in [approach_back, approach_end]:
-		_approach_span(approach_left, approach_right, z)
+func _build_parked_lot(tuning: DriveTuning) -> void:
+	# Side-on cars form each offset row; gaps between bumpers stay real.
 	for opening in [first_opening, second_opening]:
-		_approach_span(approach_left, opening.x - opening_width / 2, opening.y)
-		_approach_span(opening.x + opening_width / 2, approach_right, opening.y)
+		for direction in [-1.0, 1.0]:
+			var edge: float = opening.x + direction * opening_width / 2
+			var end: float = approach_left + 0.2 if direction < 0 else approach_right - 0.2
+			var length := absf(end - edge)
+			var count := int(floorf(length / tuning.body_size.z))
+			var gap := (length - count * tuning.body_size.z) / maxf(count - 1, 1)
+			for index in count:
+				var x: float = edge + direction * (tuning.body_size.z / 2 + index * (tuning.body_size.z + gap))
+				_park_car(Vector3(x, 0, opening.y), direction * PI / 2, tuning)
+	# Surrounding rows give the lot scale, leaving the short playable approach clear.
+	for z in [-22.0, -16.0, 13.0, 19.0]:
+		for index in 16:
+			var x := -22.5 + index * 3.0
+			_parking_space(Vector3(x, 0, z), 0, Vector2(2.8, 5.2))
+			if (index + int(z)) % 7 != 0:
+				_park_car(Vector3(x, 0, z), 0 if int(z) % 2 == 0 else PI, tuning, false)
 
 
-func _approach_span(left: float, right: float, z: float) -> void:
-	_approach_barrier(Vector3(right - left, barrier_height, 0.4), Vector3((left + right) / 2, barrier_height / 2, z))
+func _park_car(at: Vector3, yaw: float, tuning: DriveTuning, marked: bool = true) -> void:
+	var body := StaticBody3D.new()
+	body.name = "ParkedCar%d" % parked_cars.size()
+	body.position = at + Vector3(0, tuning.body_size.y / 2, 0)
+	body.rotation.y = yaw
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = tuning.body_size
+	shape.shape = box
+	body.add_child(shape)
+	body.add_child(PARKED_VISUAL.instantiate())
+	add_child(body)
+	parked_cars.append(body)
+	if marked:
+		_parking_space(at, yaw, Vector2(tuning.body_size.x + 0.3, tuning.body_size.z + 0.15))
 
 
-func _approach_barrier(size: Vector3, at: Vector3) -> void:
-	_box(size, at, Color("cf8157"), true)
-	# Bright upper edge stays readable through the existing seated windows.
-	_box(Vector3(size.x + 0.02, 0.12, size.z + 0.02), at + Vector3(0, barrier_height / 2 - 0.15, 0), Color("fff3c5"))
+func _parking_space(at: Vector3, yaw: float, size: Vector2) -> void:
+	var space := Node3D.new()
+	space.position = at
+	space.rotation.y = yaw
+	add_child(space)
+	for x in [-size.x / 2, size.x / 2]:
+		_box(Vector3(0.07, 0.012, size.y), Vector3(x, 0.018, 0), Color("ccd0c3"), false, space)
+	_box(Vector3(size.x, 0.012, 0.07), Vector3(0, 0.018, size.y / 2), Color("ccd0c3"), false, space)
 
 
 func _box(size: Vector3, at: Vector3, color: Color, collision: bool = false, parent: Node3D = self) -> MeshInstance3D:

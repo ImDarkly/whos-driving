@@ -35,7 +35,7 @@ func _run() -> void:
 		var aligned := true
 		# Cross opening one, turn right across the middle chamber, then left
 		# through opening two into the unchanged bay. No car-state writes.
-		var route := [Vector3(-0.5, 0, -0.75), Vector3(5, 0, -0.75), game.TUNING.bay_position]
+		var route := [Vector3(-0.5, 0, -0.5), Vector3(5, 0, -0.5), game.TUNING.bay_position]
 		for target in route:
 			for leg in 4:
 				var offset: Vector3 = target - game.car.position
@@ -63,6 +63,8 @@ func _run() -> void:
 			await _send(0)
 		await _capture("parked")
 		var ok: bool = aligned and arrived and game.parking.success and route_valid and crossings == [0, 1] and turned_right and turned_left
+		if not ok:
+			print("DETAIL aligned=", aligned, " arrived=", arrived, " parked=", game.parking.success, " valid=", route_valid, " crossings=", crossings, " turns=", turned_right, "/", turned_left)
 		print("COMMAND-ONLY PARKING ", count, "P ", "PASS" if ok else "FAIL", " position=", game.car.position, " yaw=", game.car.rotation.y)
 		if not ok:
 			failures += 1
@@ -74,7 +76,7 @@ func _run() -> void:
 func _turn(target: float) -> bool:
 	for tick in 1200:
 		var error := wrapf(target - game.car.rotation.y, -PI, PI)
-		if absf(error) < 0.02 and absf(game.car.yaw_speed) < 0.07:
+		if absf(error) < 0.01 and absf(game.car.yaw_speed) < 0.015:
 			return true
 		var effort: float = 3.0 * error - 2.0 * game.car.yaw_speed
 		var direction := int(signf(effort)) if absf(effort) > 0.015 else 0
@@ -82,6 +84,7 @@ func _turn(target: float) -> bool:
 		var left := C.FL if game.controls.players.size() == 3 else C.LEFT
 		var right := C.FR if game.controls.players.size() == 3 else C.RIGHT
 		await _send(C.drive(left, -direction) | C.drive(right, direction))
+	print("TURN TIMEOUT target=", target, " yaw=", game.car.rotation.y, " rate=", game.car.yaw_speed, " position=", game.car.position)
 	return false
 
 
