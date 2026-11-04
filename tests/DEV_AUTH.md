@@ -69,3 +69,25 @@ path. No tool installation, account sign-in UI or portal edits are automated.
 Checks normal defaults, account selection, loopback endpoint validation,
 malformed/duplicate options, export rejection, and no fallback/initialization
 for rejected options. It does not contact EOS or Dev Auth Tool.
+
+## Revised wheel protocol check
+
+With the existing two named accounts authorized in the running tool, run:
+
+```powershell
+& ./tests/run_eos_wheels.ps1
+```
+
+This explicitly logs in through Dev Auth, creates a temporary EOS room, joins by
+code, and exercises the production wheel RPCs, host physics, snapshots, repeated
+reset, shared parking, host departure and clean SDK shutdown in two headless
+processes. It never falls back to ENet or Device-ID. The launcher writes SDK logs
+to ignored `build/eos-wheel-*.log` and prints only check results. It does not
+automate account sign-in or consent. The room uses the revised protocol's bucket
+and socket; old shared-WASD builds cannot join it.
+
+The parking stage places a host fixture in the bay to check replication. Run
+`tests/check_parking_drive.gd --fixed-fps 60` with the engine's `--script` option
+for command-only local parking at all four player counts. Neither test is a
+human handling playtest or a cross-device/Internet check. The default
+`tests/run_network.ps1` continues to use test-only localhost ENet for four peers.

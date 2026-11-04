@@ -16,7 +16,7 @@ func tick(car: ParkingCar, tuning: DriveTuning, delta: float) -> bool:
 	contained = contains_footprint(car.global_transform, tuning)
 	if success:
 		return false
-	var slow := car.velocity.length() <= tuning.parking_speed and absf(car.yaw_speed) <= tuning.parking_yaw_speed
+	var slow := car.linear_velocity.length() <= tuning.parking_speed and absf(car.yaw_speed) <= tuning.parking_yaw_speed
 	held = held + delta if contained and slow else 0.0
 	if held >= tuning.parking_hold:
 		success = true

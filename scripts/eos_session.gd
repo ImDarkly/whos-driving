@@ -6,8 +6,8 @@ extends Node
 signal room_started
 signal room_ended(reason: String)
 
-const BUCKET := "whosdriving-v1"
-const SOCKET := "WhosDrivingV1"
+const BUCKET := "whosdriving-wheels-v2"
+const SOCKET := "WhosDrivingWheelsV2"
 const CODE_ALPHABET := "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
 
 # The 2.3.1 native binding reads this field, but its GDScript options omit it.
@@ -26,6 +26,7 @@ var _platform_ready: bool = false
 var _login_ready: bool = false
 var _connecting_since: float = 0.0
 var _leaving: bool = false
+var _shutting_down: bool = false
 var dev_auth: Dictionary = {"enabled": false, "account": "", "server": "localhost:8081", "error": ""}
 var _dev_auth_result: int = -1
 
@@ -174,6 +175,28 @@ func leave_room(reason: String = "Left room. Local practice.") -> void:
 	is_host = true
 	busy = false
 	_leaving = false
+
+
+func shutdown() -> bool:
+	if _shutting_down:
+		return false
+	_shutting_down = true
+	if lobby or online:
+		leave_room("Closing game.")
+	var deadline := Time.get_ticks_msec() + 3000
+	while _leaving and Time.get_ticks_msec() < deadline:
+		await get_tree().process_frame
+	if not _platform_ready:
+		return true
+	get_tree().root.get_node("EOSGRuntime").set_process(false)
+	# Auth/lobby coroutines can resume INSIDE IEOS.tick(). Releasing the platform
+	# there invalidates the native callback stack. Leave that frame before release.
+	await get_tree().process_frame
+	EOS.Platform.PlatformInterface.release()
+	var result := EOS.Platform.PlatformInterface.shutdown()
+	_platform_ready = false
+	_login_ready = false
+	return EOS.is_success(result)
 
 
 func _connected() -> void:

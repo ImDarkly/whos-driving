@@ -7,13 +7,10 @@ var peer: ENetMultiplayerPeer
 var slot: int = 1
 var status_clock: float = 0.0
 var deadline: float = 0.0
-var parking_rehearsal: bool = false
 
 
 func _initialize() -> void:
 	for argument in OS.get_cmdline_user_args():
-		if argument == "--park":
-			parking_rehearsal = true
 		if argument.begins_with("--slot="):
 			slot = clampi(int(argument.trim_prefix("--slot=")), 1, 4)
 	_start.call_deferred()
@@ -56,12 +53,6 @@ func _start() -> void:
 			deadline = Time.get_ticks_msec() / 1000.0 + 15.0
 	if error != OK:
 		game.session.status = "LOCAL TEST · connection failed: %s" % error_string(error)
-	if parking_rehearsal:
-		var rehearsal := Node.new()
-		rehearsal.set_script(load("res://build/parking_rehearsal.gd"))
-		rehearsal.name = "ParkingRehearsal"
-		rehearsal.game = game
-		game.add_child(rehearsal)
 	_write_status()
 
 
@@ -90,7 +81,7 @@ func _process(delta: float) -> bool:
 func _write_status() -> void:
 	var mapping: Array[int] = []
 	for id in game.controls.players:
-		mapping.append(game.controls.owned_mask(id))
+		mapping.append(game.controls.owned_wheels(id))
 	var file := FileAccess.open("res://build/local-demo-%d.json" % slot, FileAccess.WRITE)
 	if file:
 		file.store_string(JSON.stringify({"slot": slot, "online": game.session.online,

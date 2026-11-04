@@ -1,6 +1,6 @@
 extends SceneTree
-## TEST TRANSPORT ONLY: separate processes use localhost ENet to exercise the
-## production game RPCs without EOS credentials. Does not validate EOS services.
+## Default: separate processes use TEST-ONLY localhost ENet without credentials.
+## Explicit `eos` opt-in runs the two-account EOS check; see run_eos_wheels.ps1.
 
 
 func _initialize() -> void:
