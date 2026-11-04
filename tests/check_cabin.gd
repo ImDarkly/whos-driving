@@ -20,6 +20,18 @@ func _run() -> void:
 	game.manual_inputs = true
 	await process_frame
 	check(Input.mouse_mode == Input.MOUSE_MODE_VISIBLE, "room UI starts accessible")
+	check(game.car.get_child(0).shape.size == game.TUNING.body_size, "original collision size retained")
+	for index in 4:
+		check(game.car.wheels[index].position.distance_to(game.TUNING.wheel_positions[index]) < 0.001, "visual wheel centered on unchanged force position")
+		check(game.car.wheel_materials[index].albedo_texture != null and game.car.wheel_materials[index].emission_texture != null, "supplied diffuse and emissive textures imported")
+	var bounds := AABB()
+	for part in game.car.visual.get_node("Model").get_children():
+		if part is MeshInstance3D:
+			var part_bounds: AABB = part.transform * part.get_aabb()
+			bounds = bounds.merge(part_bounds)
+	check(bounds.position.x >= -game.TUNING.body_size.x / 2 - 0.001 and bounds.end.x <= game.TUNING.body_size.x / 2 + 0.001, "visual width within collision footprint")
+	check(bounds.position.z >= -game.TUNING.body_size.z / 2 - 0.001 and bounds.end.z <= game.TUNING.body_size.z / 2 + 0.001, "visual length within collision footprint")
+
 	if DisplayServer.get_name() != "headless":
 		for frame in 3:
 			await process_frame
@@ -57,7 +69,7 @@ func _run() -> void:
 			game.hud.local_slot_changed.emit(slot)
 			await process_frame
 			game._update_seated_view()
-			check(game.camera.position.distance_to(game.car.to_global(ParkingCar.SEATS[slot])) < 0.001, "camera at assigned seat")
+			check(game.camera.position.distance_to(game.car.to_global(game.car.seat_position(slot))) < 0.001, "camera at assigned seat")
 			for index in 4:
 				check(game.car.passengers[index].visible == (index < count and index != slot), "occupied friends only; local head hidden")
 	# Local view cannot affect body pose; yaw wraps and pitch clamps.

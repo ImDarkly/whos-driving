@@ -1,0 +1,21 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="PackedScene" path="res://assets/retro_car/retro_car.glb" id="1"]
+
+[node name="RetroCarVisual" type="Node3D"]
+
+[node name="Model" parent="." instance=ExtResource("1")]
+
+[node name="Seats" type="Node3D" parent="."]
+
+[node name="FrontLeft" type="Marker3D" parent="Seats"]
+position = Vector3(-0.48, 0.8, -0.15)
+
+[node name="FrontRight" type="Marker3D" parent="Seats"]
+position = Vector3(0.48, 0.8, -0.15)
+
+[node name="RearLeft" type="Marker3D" parent="Seats"]
+position = Vector3(-0.48, 0.8, 0.62)
+
+[node name="RearRight" type="Marker3D" parent="Seats"]
+position = Vector3(0.48, 0.8, 0.62)

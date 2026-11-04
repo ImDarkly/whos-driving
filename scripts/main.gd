@@ -122,7 +122,7 @@ func _process(delta: float) -> void:
 func _update_seated_view() -> void:
 	var seat := clampi(controls.players.find(_local_id()), 0, 3)
 	car.show_passengers(controls.players.size(), seat)
-	camera.global_transform = car.global_transform * Transform3D(Basis.from_euler(Vector3(look_pitch, look_yaw, 0)), ParkingCar.SEATS[seat])
+	camera.global_transform = car.global_transform * Transform3D(Basis.from_euler(Vector3(look_pitch, look_yaw, 0)), car.seat_position(seat))
 
 
 func _reset_look() -> void:

@@ -296,7 +296,7 @@ func _cabin_matches() -> bool:
 	var slot: int = game.controls.players.find(game._local_id())
 	if slot < 0:
 		return false
-	if game.camera.position.distance_to(game.car.to_global(ParkingCar.SEATS[slot])) > 0.001:
+	if game.camera.position.distance_to(game.car.to_global(game.car.seat_position(slot))) > 0.001:
 		return false
 	for index in 4:
 		if game.car.passengers[index].visible != (index < game.controls.players.size() and index != slot):
