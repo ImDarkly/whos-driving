@@ -32,6 +32,9 @@ func _run() -> void:
 	game.set_local_count(4)
 	for frame in 6:
 		await process_frame
+	if "--record-motion" in OS.get_cmdline_user_args():
+		await _record_motion(game)
+		return
 	var capture_only := "--capture-only" in OS.get_cmdline_user_args()
 	if capture_only:
 		for slot in 4:
@@ -47,3 +50,55 @@ func _run() -> void:
 		quit(0)
 	else:
 		print("LOCAL DUMMY DEMO READY: four practice seats; F3 changes seat/count; no EOS login")
+
+func _record_motion(game: Node3D) -> void:
+	var rigs: Array[Skeleton3D] = []
+	var seated: Array = []
+	var reaching: Array = []
+	for passenger in game.car.passengers:
+		var dummy: Node3D = passenger.get_node("SeatedDummy")
+		var rig := dummy.find_child("Skeleton3D", true, false) as Skeleton3D
+		var player := dummy.find_child("AnimationPlayer", true, false) as AnimationPlayer
+		var sit: Array[Quaternion] = []
+		var steer: Array[Quaternion] = []
+		player.play("Sit")
+		player.advance(0.0)
+		for bone in rig.get_bone_count():
+			sit.append(rig.get_bone_pose_rotation(bone))
+		player.play("Steer")
+		player.advance(0.0)
+		for bone in rig.get_bone_count():
+			steer.append(rig.get_bone_pose_rotation(bone))
+		player.stop(true)
+		rigs.append(rig)
+		seated.append(sit)
+		reaching.append(steer)
+	var caption := Label.new()
+	caption.text = "SCRIPTED MOTION PREVIEW · local demo"
+	caption.position = Vector2(390, 18)
+	caption.add_theme_font_size_override("font_size", 18)
+	caption.add_theme_color_override("font_shadow_color", Color.BLACK)
+	caption.add_theme_constant_override("shadow_offset_x", 2)
+	caption.add_theme_constant_override("shadow_offset_y", 2)
+	game.hud.add_child(caption)
+	# Four fixed-seat shots, four seconds each at movie mode's fixed 30 fps.
+	for frame in 480:
+		var slot := frame / 120
+		var t := float(frame) / 30.0
+		if frame % 120 == 0:
+			game.hud.local_slot_changed.emit(slot)
+		game.look_yaw = (-PI / 2 if slot % 2 == 0 else PI / 2) + .18 * sin(t * .8)
+		game.look_pitch = -.08
+		for index in 4:
+			var rig := rigs[index]
+			var reach := .5 + .5 * sin(t * 1.8 + index * 1.3)
+			for bone in rig.get_bone_count():
+				rig.set_bone_pose_rotation(bone, seated[index][bone].slerp(reaching[index][bone], reach))
+			var head := rig.find_bone("Head")
+			rig.set_bone_pose_rotation(head, seated[index][head] * Quaternion(Vector3.UP, .72 * sin(t * 1.4 + index * 1.2)))
+		await process_frame
+		if frame % 120 == 60:
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://build/dummy-motion-seat-%d.png" % (slot+1))
+	print("DUMMY MOTION RECORDED: 480 scripted motion frames, four seats; no gameplay animation or gaze replication")
+	quit(0)

@@ -10,6 +10,8 @@ No playable integration, changes to cameras, controls, physics, networking, car 
 
 Follow-up authorization: Oleksandr requested running a game demo with the dummies. `tests/dummy_demo.gd` may replace heads in its own offline playable instance, retain labels/local-avatar hiding, apply the measured seated fit and expose existing F3 practice controls. Normal F5 gameplay remains unchanged; this does not adopt permanent character integration or change cameras/handling.
 
+Recording follow-up: requested a video of players moving inside the car. The demo's explicit `--record-motion` mode may use scripted seated arm motion/head turns and four seat-camera shots, labelled as scripted preview footage. These motions are recording-only, not networked player input or adopted gameplay animation.
+
 ---
 
 # Previous spec: Retro car visual replacement
