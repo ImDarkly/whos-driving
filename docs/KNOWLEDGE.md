@@ -1,5 +1,7 @@
 # Local playable checkpoint — 2026-11-04
 
+Status after the design discussion: the implementation and checks below describe the previous shared-WASD prototype. SPEC.md now records the replacement wheel-control direction and proposals awaiting approval. No gameplay code changed during this design session; previous handling checks do not validate the replacement design.
+
 ## Environment and implementation
 
 - Repository: `C:/Users/Zenbook/Documents/Godot Projects/whos-driving`, Git 2.46.2, origin `https://github.com/ImDarkly/whos-driving.git`. Oleksandr authorized the initial commit, push and PR after the ignore/secret audit. The empty remote needs an empty `main` baseline; the project is proposed on `codex/first-playable`. Merging remains Oleksandr's decision. No worktree, software installation or global settings changes.
