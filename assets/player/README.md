@@ -16,7 +16,7 @@ Rebuild from the repository with installed Blender:
 & 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --python tools/build_dummy.py
 ```
 
-Previews are in `docs/player-previews/`. Cabin images are Blender fit studies with the intact car, not Godot gameplay captures. The local study passenger is hidden for each seat camera. Normal F5 gameplay still uses the previous colored heads. Demo launchers and their separate validation/adoption status are documented in `docs/KNOWLEDGE.md`; production character integration and networked gaze remain outside this asset delivery.
+Original character previews are tracked in `docs/player-previews/`. Car-containing `cabin-*.png` images are local-only Blender fit studies with the intact car, not Godot gameplay captures. The local study passenger is hidden for each seat camera. The rebuild script also needs the restored local car GLB for its cabin-study step; see restoration instructions in `docs/KNOWLEDGE.md`. Normal F5 gameplay still uses the previous colored heads. Demo launchers and their separate validation/adoption status are documented there; production character integration and networked gaze remain outside this asset delivery.
 
 Godot import verification:
 

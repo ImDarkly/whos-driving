@@ -1,3 +1,43 @@
+# Local dependency restoration and Git cleanup — 2026-11-04
+
+The current distribution decision is in SPEC.md; older vendoring/publication statements below are historical. A fresh clone is intentionally incomplete for running the current game: the retained EOSG extension depends on the excluded native runtime, and `scripts/car.gd` preloads our retained visual scene which depends on the excluded car GLB. There is no fallback car or replacement SDK in this cleanup.
+
+## Restore before opening/importing a fresh clone
+
+Use an authorized local dependency copy; do not add these files back to Git. The verified backup for this checkout is the sibling directory `../whos-driving-local-backup-20261104-193233/`, outside this repository and any parent Git repository, with `.gdignore` and `manifest.json` (relative paths, byte lengths and SHA-256). It contains 13 excluded files plus six unrelated working files preserved as a precaution. It is a local backup, not a downloadable public dependency bundle.
+
+Copy the following paths from the backup to the same relative paths in the clone, creating parent directories as needed:
+
+- `addons/epic-online-services-godot/bin/windows/EOSSDK-Win64-Shipping.dll`
+- `addons/epic-online-services-godot/bin/windows/x64/xaudio2_9redist.dll`
+- `assets/retro_car/retro_car.glb` and `retro_car.glb.import`
+- `assets/retro_car/retro_car_Blue Car Texture.png` and its `.import` sidecar
+- `assets/retro_car/retro_car_Emissive Texture.png` and its `.import` sidecar
+
+The car import sidecars preserve the tested material/import settings. For the original cabin-study documentation, optionally restore `docs/player-previews/cabin-exterior.png` and `cabin-seat-1.png` through `cabin-seat-4.png`. Original character-only previews, Blender source, GLB, materials and generator remain tracked; the generator's cabin-study step requires the restored car. Our `retro_car_visual.tscn` scene/seat markers remain tracked too.
+
+Verify copied files with `Get-FileHash -Algorithm SHA256` against the backup manifest. Restore only entries with `ExcludeFromGit: true`; the other entries are unrelated local work, not dependency setup. On a different machine without this backup, obtain the matching dependencies separately under appropriate access/terms: EOSG 2.3.1's expected Windows EOS runtime and XAudio runtime, and the converted/fitted Bricchi car set described in its retained attribution. The raw creator archive is not a drop-in replacement for our fitted GLB; exact regeneration currently depends on local conversion scratch files, not a tracked reproducible converter. The wrapper's MIT license does not establish redistribution rights for its SDK/audio dependencies. Other platforms need their corresponding runtime files referenced by `eosg.gdextension`; none were newly supplied or tested here.
+
+Then run the installed Godot 4.6.2 editor import: `& 'C:/Godot/Godot_v4.6.2-stable_win64_console.exe' --headless --path . --editor --import --quit`, and open `project.godot` / F5. For EOS rooms, separately configure ignored `eos.local.cfg` using blank `eos.example.cfg` and the existing Dev Auth instructions where applicable; never copy credentials into tracked files. Offline startup does not require signing in. Git ignore rules exclude the runtime names, car GLB/PNGs/import settings and car-containing cabin previews; they retain MIT EOSG code, its two Windows wrapper DLLs/license/patch notes, car attribution and original work.
+
+## Cleanup evidence
+
+Working files were copied and SHA-256 compared before `git rm --cached` on the 13 excluded paths. Nothing was deleted from the working tree. The pre-existing project configuration edit, car import edits, four untracked test UID files and temporary wrapper DLL were preserved; only car import sidecars are included in the requested tracking removal. No gameplay/handling/networking code changes. Historical copies remain public in existing Git history and remote refs; this forward-only local cleanup does not revoke or purge those copies. No push, merge or history rewrite.
+
+Executed this cleanup session from this checkout with `$engine = 'C:/Godot/Godot_v4.6.2-stable_win64_console.exe'`:
+
+- `& $engine --headless --path . --editor --import --quit`: first sandboxed attempt emitted extension-DLL copy and safe-save permission errors despite exit 0, so it was not counted as passed. Rerun outside the sandbox: clean import, exit 0. No engine/global setting changes or code repair needed.
+- `& $engine --headless --path . --quit-after 120`: exit 0, offline startup smoke.
+- `& $engine --headless --path . --script tests/check_playable.gd --fixed-fps 60`: 127 checks, zero failures, exit 0.
+- Same engine flags with `tests/check_cabin.gd --fixed-fps 60`: 73 checks, zero failures, exit 0.
+- `& $engine --headless --path . --script tests/check_dummy.gd`: actual 14-bone/four-pose/skinning/four-material checks pass, exit 0.
+- Same flags with `tests/check_recovery.gd`: 11 checks, zero failures, exit 0; exercises actual SDK initialization without authentication.
+- `& $engine --path . --script tests/preview_playable.gd`: native AMD Radeon/OpenGL 3.3 Compatibility, exit 0. Inspected `build/local-playable.png`: car cabin, lot and credit/UI present. Other generated views were not individually reinspected for this tracking-only change.
+- `& ./tests/run_network.ps1`: all four separate peers exit 0, test-only localhost ENet production-RPC checks pass, clean stderr. No real EOS room/login or Internet test this session.
+- Per-file `git check-ignore --quiet` and `git ls-files --error-unmatch` checks: all 13 excluded paths ignored/absent from index; MIT wrapper DLLs/license, car scene/attribution and original character source/GLB remain tracked and unignored. SHA-256 recheck after engine tests: all 13 local dependency/preview files, project configuration and four UID files unchanged; all 19 backup copies match the manifest. Godot rotated its temporary `~libeosg...dll` during import; its original backed-up copy was restored afterward. `git diff --check` on the five edited text files and `git diff --cached --check` pass.
+
+This validates the existing local checkout with its dependencies retained. A fresh-clone restoration rehearsal, exports, live EOS multiplayer and human driving were not run. Shortest manual check after restoration: open `project.godot`, F5, confirm the cabin and car credit, drive briefly, then R to reset.
+
 # Crash-test dummy asset checkpoint — 2026-11-04
 
 Built on `codex/crash-test-dummy`, after fast-forwarding local main to fetched `origin/main` (`6c5187b`, merged retro car PR #4). This is an asset delivery, not playable integration or adoption. Approved scope lives in SPEC.md; asset dimensions, materials, pose usage and rebuild/import commands are in `assets/player/README.md`.

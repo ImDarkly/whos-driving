@@ -29,7 +29,7 @@ secrets/
 *.key
 *.p12
 *.pfx
-# Local debug symbols/crash dumps; retain the addon's runtime DLLs.
+# Local debug symbols/crash dumps.
 *.pdb
 *.ilk
 *.exp
@@ -45,3 +45,15 @@ desktop.ini
 *.bak
 *.backup
 *~
+# Unconfirmed redistribution rights: local-only third-party dependencies.
+# Keep MIT EOSG wrapper libraries/code and car attribution/our scene tracked.
+EOSSDK-*
+libEOSSDK-*
+EOSSDK.framework/
+EOSSDK.xcframework/
+eossdk-*.aar
+xaudio2_9redist.dll
+/assets/retro_car/*.glb
+/assets/retro_car/*.png
+/assets/retro_car/*.import
+/docs/player-previews/cabin-*.png
