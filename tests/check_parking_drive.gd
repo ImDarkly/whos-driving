@@ -70,5 +70,5 @@ func _send(mask: int) -> void:
 	await physics_frame
 	sequence += 1
 	for id in game.controls.players:
-		game.controls.submit(id, mask, sequence, game.controls.epoch, Time.get_ticks_msec() / 1000.0)
+		game.controls.submit(id, game.controls.normalize(id, mask), sequence, game.controls.epoch, Time.get_ticks_msec() / 1000.0)
 	await process_frame

@@ -2,6 +2,8 @@ class_name TestLot
 extends Node3D
 
 var bay_fill: MeshInstance3D
+@export var barrier_gap: float = 0.3
+@export var barrier_height: float = 1.15
 
 
 func build(tuning: DriveTuning) -> void:
@@ -19,6 +21,15 @@ func build(tuning: DriveTuning) -> void:
 	bay.position = tuning.bay_position
 	bay.rotation.y = tuning.bay_yaw
 	add_child(bay)
+	# Outside containment, with the near end and left side open for an approach.
+	var side_x := tuning.bay_size.x / 2.0 + barrier_gap + 0.15
+	var end_z := -tuning.bay_size.y / 2.0 - barrier_gap - 0.15
+	_box(Vector3(0.3, barrier_height, tuning.bay_size.y), Vector3(side_x, barrier_height / 2, 0), Color("cf8157"), true, bay)
+	_box(Vector3(tuning.bay_size.x + 0.6, barrier_height, 0.3), Vector3(0, barrier_height / 2, end_z), Color("cf8157"), true, bay)
+	for z in range(-2, 3):
+		_box(Vector3(0.32, 0.12, 0.3), Vector3(side_x, barrier_height - 0.15, z), Color("fff3c5"), false, bay)
+	for x in [-1.0, 0.0, 1.0]:
+		_box(Vector3(0.3, 0.12, 0.32), Vector3(x, barrier_height - 0.15, end_z), Color("fff3c5"), false, bay)
 	bay_fill = _box(Vector3(tuning.bay_size.x, 0.012, tuning.bay_size.y), Vector3(0, 0.015, 0), Color("42665d"), false, bay)
 	for x in [-tuning.bay_size.x / 2.0, tuning.bay_size.x / 2.0]:
 		_box(Vector3(0.1, 0.025, tuning.bay_size.y + 0.1), Vector3(x, 0.035, 0), Color("bde8be"), false, bay)

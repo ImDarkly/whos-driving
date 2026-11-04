@@ -17,6 +17,15 @@ func _run() -> void:
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://build/local-playable.png")
 	game.set_local_count(4)
+	for slot in 4:
+		game.hud.local_slot_changed.emit(slot)
+		for view in ["forward", "friend", "rear"]:
+			game.look_yaw = 0.0 if view == "forward" else ((-PI / 2 if slot % 2 == 0 else PI / 2) if view == "friend" else PI)
+			for frame in 3:
+				await process_frame
+			await RenderingServer.frame_post_draw
+			root.get_texture().get_image().save_png("res://build/seat-%d-%s.png" % [slot + 1, view])
+	game.hud.local_slot_changed.emit(0)
 	game.hud.debug_panel.visible = true
 	for frame in 5:
 		await process_frame
