@@ -5,6 +5,11 @@ extends SceneTree
 var game: Node3D
 var sequence := 0
 var failures := 0
+var crossings: Array[int] = []
+var route_valid := true
+var previous_position := Vector3.ZERO
+var turned_right := false
+var turned_left := false
 const C = preload("res://scripts/shared_controls.gd")
 
 
@@ -17,33 +22,47 @@ func _run() -> void:
 	root.add_child(game)
 	game.manual_inputs = true
 	await process_frame
-	for count in range(1, 5):
+	var counts := [2] if "--capture" in OS.get_cmdline_user_args() else [1, 2, 3, 4]
+	for count in counts:
 		game.set_local_count(count)
 		await _send(0)
+		crossings.clear()
+		route_valid = true
+		turned_right = false
+		turned_left = false
+		previous_position = game.car.position
+		await _capture("spawn")
 		var aligned := true
-		var arrived := false
-		for leg in 4:
-			var offset: Vector3 = game.TUNING.bay_position - game.car.position
-			offset.y = 0
-			if offset.length() < 0.25:
-				arrived = true
-				break
-			aligned = await _turn(atan2(-offset.x, -offset.z)) and aligned
-			for tick in 30:
-				await _send(0)
-			for tick in 1600:
-				var remaining: float = (game.TUNING.bay_position - game.car.position).dot(-game.car.global_basis.z)
-				if absf(remaining) < 0.10 and absf(game.car.speed) < 0.10:
+		# Cross opening one, turn right across the middle chamber, then left
+		# through opening two into the unchanged bay. No car-state writes.
+		var route := [Vector3(-0.5, 0, -0.75), Vector3(5, 0, -0.75), game.TUNING.bay_position]
+		for target in route:
+			for leg in 4:
+				var offset: Vector3 = target - game.car.position
+				offset.y = 0
+				if offset.length() < 0.16:
 					break
-				var desired_speed := clampf(remaining * 1.2, -2.0, 2.0)
-				var error: float = desired_speed - game.car.speed
-				await _send(C.drive(C.WHEELS, int(signf(error)) if absf(error) > 0.06 else 0))
-			for tick in 30:
-				await _send(0)
+				aligned = await _turn(atan2(-offset.x, -offset.z)) and aligned
+				for tick in 30:
+					await _send(0)
+				for tick in 1600:
+					var remaining: float = (target - game.car.position).dot(-game.car.global_basis.z)
+					if absf(remaining) < 0.08 and absf(game.car.speed) < 0.08:
+						break
+					var desired_speed := clampf(remaining * 1.2, -1.4, 1.4)
+					var error: float = desired_speed - game.car.speed
+					await _send(C.drive(C.WHEELS, int(signf(error)) if absf(error) > 0.06 else 0))
+				for tick in 30:
+					await _send(0)
+			aligned = aligned and Vector2(target.x - game.car.position.x, target.z - game.car.position.z).length() < 0.2
+			await _capture("leg-%d" % route.find(target))
+			print("ROUTE ", count, "P target=", target, " actual=", game.car.position)
+		var arrived: bool = game.car.position.distance_to(game.TUNING.bay_position + Vector3(0, game.car.position.y, 0)) < 0.2
 		aligned = await _turn(0) and aligned
 		for tick in 240:
 			await _send(0)
-		var ok: bool = aligned and arrived and game.parking.success
+		await _capture("parked")
+		var ok: bool = aligned and arrived and game.parking.success and route_valid and crossings == [0, 1] and turned_right and turned_left
 		print("COMMAND-ONLY PARKING ", count, "P ", "PASS" if ok else "FAIL", " position=", game.car.position, " yaw=", game.car.rotation.y)
 		if not ok:
 			failures += 1
@@ -72,3 +91,29 @@ func _send(mask: int) -> void:
 	for id in game.controls.players:
 		game.controls.submit(id, game.controls.normalize(id, mask), sequence, game.controls.epoch, Time.get_ticks_msec() / 1000.0)
 	await process_frame
+
+	# Observe the physical trajectory, including every driven physics step.
+	var at: Vector3 = game.car.position
+	for index in 2:
+		var opening: Vector2 = game.lot.first_opening if index == 0 else game.lot.second_opening
+		if previous_position.z >= opening.y and at.z < opening.y:
+			if crossings.has(index) or absf(at.x - opening.x) > game.lot.opening_width / 2:
+				route_valid = false
+			crossings.append(index)
+	if at.x < game.lot.approach_left or at.x > game.lot.approach_right or at.z > game.lot.approach_back or at.z < game.lot.approach_end:
+		route_valid = false
+	turned_right = turned_right or game.car.yaw_speed < -0.2
+	turned_left = turned_left or (turned_right and game.car.yaw_speed > 0.2)
+	previous_position = at
+
+
+func _capture(label: String) -> void:
+	if "--capture" not in OS.get_cmdline_user_args():
+		return
+	for view in ["forward", "right"]:
+		game.look_yaw = 0.0 if view == "forward" else -PI / 2
+		for frame in 3:
+			await process_frame
+		await RenderingServer.frame_post_draw
+		root.get_texture().get_image().save_png("res://build/approach-%s-%s.png" % [label, view])
+	game.look_yaw = 0.0

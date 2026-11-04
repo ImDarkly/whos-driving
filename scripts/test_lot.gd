@@ -4,11 +4,19 @@ extends Node3D
 var bay_fill: MeshInstance3D
 @export var barrier_gap: float = 0.3
 @export var barrier_height: float = 1.15
+## Closed approach: two offset openings, with space between to pivot/recover.
+@export var approach_left: float = -4.5
+@export var approach_right: float = 9.0
+@export var approach_back: float = 9.5
+@export var approach_end: float = -11.5
+@export var opening_width: float = 4.5
+@export var first_opening := Vector2(-0.5, 2.0)
+@export var second_opening := Vector2(5.0, -3.5)
 
 
 func build(tuning: DriveTuning) -> void:
 	_box(Vector3(50, 0.4, 50), Vector3(0, -0.2, 0), Color("35444d"), true)
-	# Perimeter contains the test area; no obstacle course in this checkpoint.
+	# Retain the outer lot; the closed inner boundary prevents broad shortcuts.
 	for x in [-25.0, 25.0]:
 		_box(Vector3(0.4, 0.7, 50), Vector3(x, 0.35, 0), Color("75868c"), true)
 	for z in [-25.0, 25.0]:
@@ -17,6 +25,7 @@ func build(tuning: DriveTuning) -> void:
 		_box(Vector3(0.025, 0.008, 48), Vector3(x, 0.005, 0), Color("42535b"))
 	for z in range(-20, 25, 5):
 		_box(Vector3(48, 0.008, 0.025), Vector3(0, 0.005, z), Color("42535b"))
+	_build_approach()
 	var bay := Node3D.new()
 	bay.position = tuning.bay_position
 	bay.rotation.y = tuning.bay_yaw
@@ -62,6 +71,26 @@ func build(tuning: DriveTuning) -> void:
 func show_parking(success: bool, contained: bool) -> void:
 	var material := bay_fill.material_override as StandardMaterial3D
 	material.albedo_color = Color("68a877") if success else (Color("527b67") if contained else Color("42665d"))
+
+
+func _build_approach() -> void:
+	for x in [approach_left, approach_right]:
+		_approach_barrier(Vector3(0.4, barrier_height, approach_back - approach_end + 0.4), Vector3(x, barrier_height / 2, (approach_back + approach_end) / 2))
+	for z in [approach_back, approach_end]:
+		_approach_span(approach_left, approach_right, z)
+	for opening in [first_opening, second_opening]:
+		_approach_span(approach_left, opening.x - opening_width / 2, opening.y)
+		_approach_span(opening.x + opening_width / 2, approach_right, opening.y)
+
+
+func _approach_span(left: float, right: float, z: float) -> void:
+	_approach_barrier(Vector3(right - left, barrier_height, 0.4), Vector3((left + right) / 2, barrier_height / 2, z))
+
+
+func _approach_barrier(size: Vector3, at: Vector3) -> void:
+	_box(size, at, Color("cf8157"), true)
+	# Bright upper edge stays readable through the existing seated windows.
+	_box(Vector3(size.x + 0.02, 0.12, size.z + 0.02), at + Vector3(0, barrier_height / 2 - 0.15, 0), Color("fff3c5"))
 
 
 func _box(size: Vector3, at: Vector3, color: Color, collision: bool = false, parent: Node3D = self) -> MeshInstance3D:

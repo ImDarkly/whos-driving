@@ -42,6 +42,9 @@ func _run() -> void:
 	await _drive(REVERSE, 90)
 	_check(game.car.speed >= -game.TUNING.reverse_speed - 0.15, "reverse speed limit")
 	game.request_reset()
+	# Long speed/coast fixture uses the unobstructed outer lot, outside the course.
+	await _drive(0, 2)
+	game.car.global_transform = Transform3D(Basis.IDENTITY, Vector3(-15, 0.56, 10))
 	await _drive(FORWARD, 160)
 	_check(game.car.speed <= game.TUNING.forward_speed + 0.15 and game.car.speed > 7.5, "forward speed limit")
 	var coasting: float = game.car.speed
