@@ -6,6 +6,6 @@ Goal from the project brief: a playable itch.io submission by December 1, 2026. 
 
 Fresh Godot + EOSG project. Chum's lobby philosophy and documented Dev Auth testing approach are references only: no fork, imported game code, or dependency on its repository. This user decision supersedes all older Chum reuse/adaptation wording in the source pages.
 
-The current design experiment and its approval status are described in SPEC.md. The wheel-controlled revision is implemented and awaits human playtesting; implementation evidence is in KNOWLEDGE.md. Other ideas (damage, scoring, gearbox roles, role rotation, variants, replays, etc.) are uncommitted; consult the source rather than copying the backlog here.
+The current design experiment and its approval status are described in SPEC.md. The wheel-controlled revision is implemented and ready for PR review; implementation evidence and demo feedback are in KNOWLEDGE.md. Other ideas (damage, scoring, gearbox roles, role rotation, variants, replays, etc.) are uncommitted; consult the source rather than copying the backlog here.
 
 Source: [Parking Game](https://app.notion.com/p/40e351013fca80428cccc909d05cd3f5), read 2026-11-04. Jam dates/rules are brief context, not independently verified submission requirements.

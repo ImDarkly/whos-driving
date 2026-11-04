@@ -4,6 +4,8 @@
 
 Design revision in chat on 2026-11-04. Oleksandr selected independent wheel drive/reverse, no steering and no brake control, with support for 1–4 total players. His subsequent implementation request approved the ownership and handling contract below. This replaces shared WASD and the previous steering/braking model. The revised playable is implemented; execution evidence and outstanding checks are in KNOWLEDGE.md. Approval to build is separate from adopting the experiment after playtesting.
 
+After the local demo, Oleksandr authorized committing and publishing this revision for PR review. Merging remains his decision; the remaining player-count and online playtests still apply.
+
 Question: can friends coordinating individual wheel forces make parking awkward, understandable and engaging enough to voluntarily retry? Extra difficulty is intended; enjoyment remains a hypothesis until playtested and explicitly adopted.
 
 Original brief: [Milestone 1 — Temporary Wheel Controls](https://app.notion.com/p/40e351013fca81f38c95fea08baa1c96), read in the previous session on 2026-11-04. This revision follows current chat decisions; the source page has not been reread for this revision. Fresh-project direction is in GAME.md; existing implementation evidence is in KNOWLEDGE.md.

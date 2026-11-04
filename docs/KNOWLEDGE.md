@@ -1,6 +1,6 @@
 # Wheel-controlled playable checkpoint — 2026-11-04
 
-The approved wheel-drive revision is implemented on `codex/wheel-drive-parking`. Human handling/readability playtests and adoption remain pending. The current evidence below is for wheel controls; older shared-WASD checks are labelled historical and do not validate this revision.
+The approved wheel-drive revision is implemented on `codex/wheel-drive-parking`, with initial positive demo feedback recorded below. Detailed handling/readability observations and broader playtests remain pending. The current evidence below is for wheel controls; older shared-WASD checks are labelled historical and do not validate this revision.
 
 ## Environment and implementation
 
@@ -76,10 +76,14 @@ From this repository, `$engine = 'C:/Godot/Godot_v4.6.2-stable_win64_console.exe
 - The only addon code patch accepts native AlreadyConfigured during platform setup and stops retrying that result as an initialization error. `tests/check_recovery.gd` exercises real SDK initialization with a scripted platform-creation failure followed by retry, plus the partial Device-ID login failure/retry. These tests failed before their corresponding fixes and now pass: 11 checks, zero failures. The platform test does not use product credentials and shuts down its initialized SDK.
 - Reran the existing suites after the repairs: gameplay 110/110, Dev Auth guards 18/18, four-process localhost RPC suite all peers exit 0. Enabled-plugin editor import also passed, exit 0. No live EOS failure injection, portal changes, control/handling changes or unrelated addon/test-helper fixes. Cross-device and full EOS gameplay validation remain pending as above.
 
+## Demo observations — 2026-11-04
+
+Launched the revised four-player interactive localhost ENet demo, then the requested two-player demo. All windows reported connected/configured, with corner ownership for four players and left/right ownership for two; their logs had no errors or warnings. Oleksandr then said, "I like that change," and requested a commit and PR. He did not report specific turning, stopping, parking or retry observations, so this records positive feedback without claiming those manual checks passed. The review decision is in SPEC.md.
+
 ## Play and next check
 
 Open `project.godot` in Godot 4.6.2 and press F5, or run the installed engine with `--path .`. Current bindings and ownership live in SPEC.md. F3 offers offline player-count selection, keyboard channel selection and independent wheel-direction injection; grouped wheels remain linked. Those test controls are disabled in rooms. The normal playable uses EOS; `tests/local_demo.gd` remains an explicitly labelled test-only ENet launcher.
 
 Shortest local playtest: drive both sides forward, release one side to turn, oppose sides for a tight turn, then counter-drive and coast into the bay. Retry while holding both forward keys and verify release/repress is required. Use F3 to inspect and try every count, especially trio's shared rear group. Batch observations on wheel comprehension, deliberate turning/stopping, parking and willingness to retry.
 
-Shortest pending human online check: run this same revision with distinct identities, Host then Join by code, check the wheel diagram, coordinate a turn and a stop, park, retry with keys held, and leave. Repeat at three/four players and across two devices. Cross-device/NAT/relay behavior, Internet responsiveness, exports and three/four-account EOS sessions remain unverified. No human playtest observations or final adoption decisions exist yet.
+Shortest pending human online check: run this same revision with distinct identities, Host then Join by code, check the wheel diagram, coordinate a turn and a stop, park, retry with keys held, and leave. Repeat at three/four players and across two devices. Cross-device/NAT/relay behavior, Internet responsiveness, exports and three/four-account EOS sessions remain unverified. Initial demo feedback is above; detailed playtest observations remain pending.
