@@ -10,6 +10,10 @@ func _run() -> void:
 	DisplayServer.window_set_title("Who's Driving? — LOCAL DUMMY DEMO")
 	var game = load("res://main.tscn").instantiate()
 	root.add_child(game)
+	install_dummies(game)
+	await _preview(game)
+
+static func install_dummies(game: Node3D) -> void:
 	var palette := ["yellow", "red", "blue", "green"]
 	for index in 4:
 		var passenger: Node3D = game.car.passengers[index]
@@ -29,6 +33,8 @@ func _run() -> void:
 		var animation := dummy.find_child("AnimationPlayer", true, false) as AnimationPlayer
 		animation.play("Sit")
 		animation.advance(0.0)
+
+func _preview(game: Node3D) -> void:
 	game.set_local_count(4)
 	for frame in 6:
 		await process_frame
