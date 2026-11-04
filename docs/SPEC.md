@@ -1,4 +1,22 @@
-# Current spec: Retro car visual replacement
+# Current spec: Crash-test dummy asset
+
+## Approved scope — 2026-11-04
+
+Oleksandr supplied the v1.1 crash-test dummy visual reference and requested implementation after confirming the actual cabin is on synced main. Build an original low-poly character following the pictured silhouette: oversized faceted head, simple eyes, yellow shells, charcoal joints and fixed crash-test badges. Deliver editable Blender source, a rigged GLB, yellow/red/blue/green body materials and standing, seated, steering-example and head-turn previews. Fit-study copies use the actual merged car and all four existing seat anchors.
+
+Use rigid bone weights and separate moving pieces; the approximate mesh count is guidance, not a fixed requirement. Target 800–1,500 triangles. Preserve eye/badge colors when repainting the shell; a fourth fixed safety-yellow material is allowed to keep badges yellow on other body colors. Pose clips are static inspection poses, not adopted gameplay animations. Exact character scale and proportions may be adjusted to the cabin while retaining the reference silhouette.
+
+No playable integration, changes to cameras, controls, physics, networking, car geometry or seat anchors; no walking, gaze replication or gameplay steering animation. Visual approval and human cabin visibility remain Oleksandr's decision. Validate actual GLB import, skinning and pose retention in Godot, inspect Blender renders and record limitations in KNOWLEDGE.md.
+
+Follow-up authorization: Oleksandr requested running a game demo with the dummies. `tests/dummy_demo.gd` may replace heads in its own offline playable instance, retain labels/local-avatar hiding, apply the measured seated fit and expose existing F3 practice controls. Normal F5 gameplay remains unchanged; this does not adopt permanent character integration or change cameras/handling.
+
+The subsequently requested two-player demo may reuse the existing same-PC localhost test transport with the seated dummies. Oleksandr then approved syncing head direction so friends can see where each other looks. Implement demo-only yaw/pitch presentation, with fixed seated bodies, unchanged camera/control/handling and local-avatar hiding. Clamp visible head yaw to ±90° and pitch to ±0.65 rad; smooth remote motion, return stale heads forward, and clear state on reset/remapping. Bind updates to the actual sender and attempt, reject nonfinite/out-of-order input. This supersedes the static-head restriction for this demo only; no networked arm gestures or changes to production EOS networking. Validate separate peers and native views, then reopen the duo demo. Adoption remains a playtest decision.
+
+Recording follow-up: requested a video of players moving inside the car. The demo's explicit `--record-motion` mode may use scripted seated arm motion/head turns and four seat-camera shots, labelled as scripted preview footage. These motions are recording-only, not networked player input or adopted gameplay animation.
+
+---
+
+# Previous spec: Retro car visual replacement
 
 ## Approved scope — 2026-11-04
 
