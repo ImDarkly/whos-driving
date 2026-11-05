@@ -39,9 +39,16 @@ func _run() -> void:
 	_check(game.car.speed < before - 1 and game.car.speed > 0, "reverse force opposes forward motion")
 	await _drive(REVERSE, 90)
 	_check(game.car.speed < -1, "continued counter-drive reverses")
-	await _drive(REVERSE, 90)
-	_check(game.car.speed >= -game.TUNING.reverse_speed - 0.15, "reverse speed limit")
+	# Measure the reverse cap along the clear aisle, before any boundary contact.
 	game.request_reset()
+	await _drive(0, 2)
+	game.car.global_transform = Transform3D(Basis(Vector3.UP, -PI / 2), Vector3(13, 0.56, -2.9))
+	await _drive(REVERSE, 180)
+	_check(game.car.speed >= -game.TUNING.reverse_speed - 0.15 and game.car.speed < -3.5, "reverse speed limit")
+	game.request_reset()
+	# Long speed/coast fixture uses the unobstructed middle aisle, along the parked rows.
+	await _drive(0, 2)
+	game.car.global_transform = Transform3D(Basis(Vector3.UP, PI / 2), Vector3(13, 0.56, -2.9))
 	await _drive(FORWARD, 160)
 	_check(game.car.speed <= game.TUNING.forward_speed + 0.15 and game.car.speed > 7.5, "forward speed limit")
 	var coasting: float = game.car.speed
@@ -72,9 +79,10 @@ func _run() -> void:
 		_check(game.car.speed > 0.2 and game.car.yaw_speed * expected_sign > 0.1, "%s independently produces translation and torque" % C.NAMES[index])
 		_check(is_zero_approx(game.car.wheels[index].rotation.y), "wheel remains fixed without steering")
 	game.set_local_count(1)
-	game.car.global_transform = Transform3D(Basis.IDENTITY, Vector3(0, 0.56, -22))
+	# An empty ordinary space leaves clearance for the perimeter fixture.
+	game.car.global_transform = Transform3D(Basis.IDENTITY, Vector3(-1.24, 0.56, -7))
 	await _drive(FORWARD, 120)
-	_check(game.car.position.z > -23.1 and absf(game.car.speed) < 0.12, "perimeter collision resolves without stored speed")
+	_check(game.car.position.z > -8.35 and game.car.position.z < -8.0 and absf(game.car.speed) < 0.12, "perimeter collision resolves without stored speed")
 	game.request_reset()
 	_check(game.car.linear_velocity == Vector3.ZERO and game.car.angular_velocity == Vector3.ZERO, "reset clears linear and angular motion immediately")
 	await _drive(0, 3)

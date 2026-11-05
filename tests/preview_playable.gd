@@ -49,5 +49,26 @@ func _run() -> void:
 		await physics_frame
 	await RenderingServer.frame_post_draw
 	root.get_texture().get_image().save_png("res://build/parking-success.png")
+	var parked: bool = game.parking.success
+	# Leave the renderer callback before requesting a physics-body reset.
+	await process_frame
+	game.request_reset()
+	for frame in 15:
+		await physics_frame
+		await process_frame
+	if game.car.position.distance_to(game.TUNING.start_position) > 0.05 or game.parking.success:
+		push_error("Exterior preview must show reset spawn and empty target: position=%s parked=%s" % [game.car.position, game.parking.success])
+		quit(1)
+		return
+	# Inspection-only exterior shot; normal gameplay retains its seated camera.
+	game.set_process(false)
+	game.hud.visible = false
+	game.camera.fov = 35
+	game.camera.position = Vector3(23, 25, 25)
+	game.camera.look_at(Vector3(5, 0, -1))
+	for frame in 3:
+		await process_frame
+	await RenderingServer.frame_post_draw
+	root.get_texture().get_image().save_png("res://build/parking-lot-exterior.png")
 	print("PREVIEW CAPTURED: build/local-playable.png, channel-debug.png, wheel-commands.png, parking-success.png")
-	quit(0 if game.parking.success else 1)
+	quit(0 if parked else 1)

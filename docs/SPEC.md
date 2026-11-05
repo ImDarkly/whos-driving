@@ -1,3 +1,63 @@
+# Approved revision: Small readable parking lot — 2026-11-04
+
+Status: Oleksandr approved this revision in chat. This replaces the large-lot presentation and supersedes the requirement for two offset obstacle openings. Observation is recorded separately in KNOWLEDGE.md. His acceptance emphasis: the aisle must allow approach/turning without making parking effortless; the gap between neighbours should supply the challenge, not route finding.
+
+Intended feel: enter an ordinary small parking lot, understand the aisle and target, then coordinate the approach and turn into a space between parked neighbours.
+
+Scope: shrink the paved area and replace the long blocking/decorative rows with two short parking rows, roughly 12–16 marked spaces with 8–10 parked cars. Give the lot one obvious entrance near the current spawn, leading into one continuous driving aisle; use ordinary low boundary geometry and markings to make the drivable area readable. Keep several ordinary spaces empty and distinguish the existing target with its green marking. Arrange the approach so players enter along the aisle and turn/alignment into the target supplies the challenge, with room to correct or reset. Avoid a car-wall maze or requiring a tour of the lot. Retain current spawn and target transforms where feasible; report a concrete blocker before moving them.
+
+Reuse the local car model with a small varied body-colour palette, preserving glass, wheels, lights and texture detail. Every parked car stays static with a matching collision footprint; visible gaps have no hidden walls. Exact spacing, occupancy pattern and colours are technical freedom within this small layout. Inspect native cabin and exterior views for entrance/aisle/target readability.
+
+Non-goals: new downloaded art, larger map, extra targets/levels, mandatory reversing, traffic, pushable cars, controls/handling/camera changes, parking-rule changes, damage/penalties, avatars or networking redesign. Preserve harmless contact and immediate shared reset.
+
+Validation: drive from the real spawn through the entrance/aisle into real parking success using only owned commands; update route-specific assertions to the approved aisle layout without weakening ownership, collisions or parking rules. Verify parked-car/boundary contact, recovery/reset, appropriate gameplay/network regression, and native rendering. Human duo playtest judges whether players understand where to go and whether the final approach produces useful coordination; scripted success does not validate difficulty or fun.
+
+Recording follow-up: Oleksandr requested a showcase. A local recording-only launcher may add exterior overview shots and captions around the existing owned-command parking rehearsal, labelled scripted/offline. It must preserve normal gameplay and record real parking success; this is presentation footage, not a human multiplayer playtest. Keep capture scripts, raw recordings and encoded video ignored/local.
+
+Showcase revision: Oleksandr requested more natural rotations, like a human playing. Adjust the recording driver's wheel-input timing to turn while moving, coast and make small corrections; ease its local look-ahead rather than snapping sideways. Preserve the actual handling/controls and retain scripted/offline labelling. This authorizes presentation/input rehearsal changes, not a new handling model.
+
+---
+
+# Previous approved revision: Parked-car lot — 2026-11-04
+
+Status: Oleksandr approved this scope in chat. Build and validate on the current experiment branch; adoption remains a playtest decision.
+
+Intended feel: weave through a busy parking lot, with parked cars to warn about instead of a barrier maze.
+
+Scope: replace the inner approach barriers with stationary parked cars using the existing local retro-car asset and add marked parking rows across the surrounding lot. Reuse static instances, with solid collision matching each parked car; no invisible continuous walls across visible gaps. Arrange the rows to retain a short approach with two offset openings, turns in both directions and blocked broad shortcuts. Adjust parked-car positions and opening clearance for their actual footprint; retain the current spawn and target bay where feasible, reporting a concrete blocker before moving either. Keep the target bay clearly identifiable and use the existing outer perimeter to contain the lot. Inspect the actual seated views and keep room to recover.
+
+Non-goals: moving/pushable cars, traffic AI, new downloaded art, character/gaze adoption, controls/handling/camera changes, new parking rules, damage, penalties, extra levels or a larger driving course. Surrounding rows provide visual scale rather than expanding the task. Existing local-only asset/distribution restrictions remain in force.
+
+Validation: owned-command-only driving from real spawn through both openings to real parking success; actual parked-car collisions, recovery and shared reset; appropriate gameplay/network regressions; native cabin and exterior inspection. A duo playtest must judge readability, warnings and difficulty. Automated feasibility does not establish fun or adoption.
+
+---
+
+# Approved experiment: Constrained parking approach — 2026-11-04
+
+Status: Oleksandr approved this experiment and requested implementation in a separate chat on a new branch from synced main. The playable checkpoint is implemented on `codex/constrained-parking-approach`; adoption remains a playtest decision. Executed validation and supporting playtest observations live in KNOWLEDGE.md.
+
+Intended feel: give friends approaching obstacles to warn about and turns to coordinate, with room to recover from a mistake.
+
+Scope: revise the existing single parking setup with a short approach bounded by solid barriers and two offset openings, requiring a turn in each direction before aligning with the existing bay. Close broad shortcuts so the route cannot be bypassed across the open lot. Keep obstacles visible from the cabin and leave enough clearance for the existing vehicle footprint to turn and recover. Preserve current controls, handling, camera, bay containment/rest/hold rules, harmless contact and immediate shared reset.
+
+Technical freedom: choose editable barrier positions and widths using the actual collision footprint and driven feasibility checks. Reuse existing static geometry and authoritative collisions; no new network protocol. Keep spawn/bay positions where feasible; report a concrete blocker before moving them.
+
+Non-goals: timers, damage, collision penalties, handling changes, mandatory reversing, extra levels, moving obstacles or new art.
+
+Checkpoint: demonstrate an owned-command-only route from spawn to real parking success without bypassing barriers; verify collision/reset and multiplayer state remain correct. Human duo playtest must judge whether the approach produces useful warnings, corrections and recoverable mistakes. Scripted feasibility does not establish adequate difficulty; adoption remains Oleksandr's decision.
+
+Implementation handoff: reuse this checkout, read AGENTS.md and all three project docs, fetch origin, safely fast-forward main to origin/main, and create a fresh `codex/` branch from that synced main. Preserve unrelated local work, including project/export configuration and generated test UID files. Carry this approved specification and current playtest notes into the new branch without importing the old feature branch's implementation commits. No worktree, installation, global settings changes, push or merge. A verified local commit is allowed. Leave a native playable checkpoint and record executed checks and remaining manual limits.
+
+---
+
+# Windows playtest packaging — 2026-11-04
+
+Oleksandr requested a Windows release ZIP containing the executable, game data, required runtime DLLs and runtime EOS config, excluding source, logs and development credentials. This authorizes a local package of the existing production playable; it does not adopt the separate dummy/gaze demos or change gameplay. Before sharing credentials, verify the configured EOS client uses a restricted game-client policy rather than Trusted Server. Begin with one friend on another PC; Internet play is still a pending playtest. The car's exact license and SDK/audio redistribution terms remain unresolved; packaging does not establish those rights. Existing Git exclusions below remain in force. Build evidence and sharing blockers live in KNOWLEDGE.md.
+
+# Repository distribution decision — 2026-11-04
+
+Oleksandr requested conservative exclusion from Git of the Epic EOS SDK runtime, `xaudio2_9redist.dll` and Bricchi-derived car assets while redistribution rights remain unconfirmed. This supersedes earlier instructions to track/distribute those dependencies, without changing the approved local gameplay or visual behavior. Keep verified local backups outside Git and working copies in place. Retain the MIT EOSG wrapper, attribution, original character work and our car scene/seat markers. Exclude car-containing cabin preview renders too. Restore instructions and executed cleanup evidence live in KNOWLEDGE.md. No history rewrite, push or merge is authorized; historical public copies remain public.
+
 # Current spec: Crash-test dummy asset
 
 ## Approved scope — 2026-11-04
