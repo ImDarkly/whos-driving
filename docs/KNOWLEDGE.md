@@ -1,3 +1,13 @@
+# Three Keys solo checkpoint — 2026-11-14
+
+Open [three_keys.tscn](../prototypes/valet/three_keys.tscn) in Godot 4.6.2 and press F6. Click the cabin to look around with the mouse and press Esc to release the cursor. W/S drives the left wheels and Up/Down drives the right wheels. While stopped, 1/2/3 selects the corresponding car once it has arrived. Switching places the view facing forward in that driver's seat. After delivery, the two replay buttons (or 1/2) start a fresh shift with the selected first pickup.
+
+- `--headless --path . --script prototypes/valet/check_three_keys.gd --fixed-fps 60` passed 28 checks with the first-person revision. Using physical-key events, the driver parked both arrivals, reproduced actual Yellow-to-Blue contact with the near pose, switched to move Blue and returned Yellow, repeated the same turn clear with Blue in the far bay, then replayed with Blue requested and delivered Blue from the near bay. The checks cover replay poses, schedule and arrival order, stopped-only switching, parked pose, and the driver's seat across car changes.
+- Native Godot with the same script and `-- --capture` passed 43 checks on OpenGL 3.3 Compatibility / AMD Radeon, including click capture, looking without steering, and cursor release with Esc. Inspected the forward and right-side views from Blue, Red's arrival, the blocked turn from Yellow, and Blue's delivery screen.
+- Base regression `tests/check_playable.gd` passed 127 checks. `tests/check_parking_drive.gd` passed the command-only route for all four player counts. Both ran headless at fixed 60 FPS. The optional editor import reported a local EOS DLL copy error even though it exited 0; the standalone and runtime tests above loaded successfully. Restored the editor's displaced untracked DLL from its local temporary copy and verified the blob hash against the preserved tree.
+
+Human playtest pending. Try a blind Yellow-first run, then optionally replay Blue-first. Observe whether the next pickup changes the parking plan and whether recovering a blocked exit feels worth doing.
+
 # PR #6 review fixes — 2026-11-04
 
 Oleksandr requested implementing the two accepted CodeRabbit suggestions after assessment. `check_parking_drive.gd` now creates/checks its capture directory and records PNG-save errors in the existing failure count with path/error diagnostics. `check_approach.gd` requires each of six palettes to change body texels, preserves its non-body comparison, and requires six distinct colours at the same body texel. No gameplay or asset-distribution changes. Rotated layouts and reproducible dependency provisioning remain deferred; the separate pending proposal in SPEC.md is preserved without adoption.

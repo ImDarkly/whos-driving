@@ -1,3 +1,22 @@
+# Approved prototype: Three Keys — 2026-11-14
+
+Oleksandr requested this specification and implementation in a separate Codex chat. This approves an isolated playable experiment. Adoption follows his playtest.
+
+**Intended feel.** You are the hotel valet. Every car stays where you leave it, so arranging the lot now changes what you can do when a guest returns. The test is whether a player wants another go with a different parking plan.
+
+**Scope.** Build one short solo shift in one compact hotel lot. Yellow starts parked. Blue and Red arrive in that order. Show the first scheduled pickup before the first parking decision. The player parks the arrivals, then brings the requested car to the hotel curb. Offer a replay of the same setup with Blue requested first instead of Yellow. Keep the arrival sequence and initial poses consistent between variants. End the shift after the requested pickup so the player can compare plans quickly.
+
+- One active car at a time. Inactive cars remain solid at their actual resting position and heading. Let the player switch cars while stopped, including to move a blocker during pickup. Use the existing wheel driving and handling. The longer-term co-op premise is that all four players ride in the active car, one wheel per person. The checkpoint is solo.
+- Give Blue a quick near pocket that can consume Yellow's turning clearance, and a farther option that takes another maneuver but leaves room for Yellow. Red needs a real place to park. Arrange the layout so the Blue-first variant can reward a different setup. Show which car is requested and give the player enough spatial information to anticipate the conflict without prescribing a solution. A blocked turn must be recoverable by repositioning, with space to do so.
+- Reuse the preserved Make Room for Pickup prototype as appropriate. Its source is under `prototypes/valet/` in `92764f9^3`. Read the preserved `docs/VALET-NEXT-DIRECTIONS.md` from that tree for context. Geometry, staging, camera presentation, car selection UI and exact distances are implementation choices within this scope.
+- Camera revision from Oleksandr: play in first person from the active driver's seat. The view follows car changes and supports the existing mouse look.
+
+**Non-goals.** No multiplayer implementation, new driving mechanics, timer, score, damage penalty, growing customer queue or production scene integration. Keep the experiment launchable as its own scene. Reuse available local assets.
+
+**Playable checkpoint.** Drive both pickup variants end to end using normal inputs. Show that different parking poses change real clearance and that moving a blocker can recover a compromised setup. Check that switching preserves parked poses, and that replay starts with the same initial state and the selected pickup order. Run the relevant base gameplay regression and inspect the prototype in native Godot. Give Oleksandr a one-step launch and report executed checks and limits. The human test is a blind solo run and an optional retry. Observe whether a different first pickup changes where he wants to park, and whether recovering a blocked exit feels worth doing.
+
+---
+
 # Approved revision: Small readable parking lot — 2026-11-04
 
 Status: Oleksandr approved this revision in chat. This replaces the large-lot presentation and supersedes the requirement for two offset obstacle openings. Observation is recorded separately in KNOWLEDGE.md. His acceptance emphasis: the aisle must allow approach/turning without making parking effortless; the gap between neighbours should supply the challenge, not route finding.
